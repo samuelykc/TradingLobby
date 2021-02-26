@@ -1,0 +1,40 @@
+body
+{
+	background-color: #3c3f41;
+}
+.HeaderP
+{
+	color: white;
+}
+.SquareIcon
+{
+    width: 250px;
+    height: 280px;
+
+    display: inline-block;
+	margin: 10px;
+	padding: 0px 10px 0px 10px;
+
+	text-align: center;
+	vertical-align: middle;
+
+	border-radius: 10px;
+	background-color: #919191;
+
+	cursor: pointer;
+}
+.SquareIconP
+{
+    height: 42px;
+	padding-bottom: 10px;
+}
+.SquareIconPFolder
+{
+    height: 80px;
+	padding-bottom: 10px;
+	font-weight: bold;
+}
+.SquareIconImg
+{
+    height: 200px;
+}

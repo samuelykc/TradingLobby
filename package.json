@@ -1,0 +1,25 @@
+{
+  "name": "ArbitrageTraderMachine",
+  "version": "1.0.0",
+  "author": "Samuel Yip",
+  "description": "Aims to carry out arbitrage between Binance and BitMax.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samuelykc/ArbitrageTraderMachine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/samuelykc/ArbitrageTraderMachine/issues"
+  },
+  "homepage": "https://github.com/samuelykc/ArbitrageTraderMachine#readme",
+  "devDependencies": {
+    "electron": "^11.3.0"
+  }
+}
