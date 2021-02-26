@@ -1,10 +1,52 @@
 body
 {
-	background-color: #3c3f41;
+    color: #dbdbdb;
+    background-color: #0d1117;
+    margin: 20px;
 }
-.HeaderP
+.tableDiff
 {
-	color: white;
+    width:80%;
+}
+.tableHistory
+{
+    width:80%;
+}
+.tableAc
+{
+    width:70%;
+}
+table
+{
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 25px;
+}
+caption
+{
+    margin-bottom: 5px;
+}
+th
+{
+    color: #c2c2c2;
+}
+th, td
+{
+    text-align: center;
+    background-color: #121a26;
+}
+.tdPrice
+{
+    color: white;
+    font-size: 20px;
+}
+.tdTime
+{
+    width: 160px;
+}
+.tdResult
+{
+    width: 16px;
 }
 .SquareIcon
 {
@@ -12,27 +54,27 @@ body
     height: 280px;
 
     display: inline-block;
-	margin: 10px;
-	padding: 0px 10px 0px 10px;
+    margin: 10px;
+    padding: 0px 10px 0px 10px;
 
-	text-align: center;
-	vertical-align: middle;
+    text-align: center;
+    vertical-align: middle;
 
-	border-radius: 10px;
-	background-color: #919191;
+    border-radius: 10px;
+    background-color: #919191;
 
-	cursor: pointer;
+    cursor: pointer;
 }
 .SquareIconP
 {
     height: 42px;
-	padding-bottom: 10px;
+    padding-bottom: 10px;
 }
 .SquareIconPFolder
 {
     height: 80px;
-	padding-bottom: 10px;
-	font-weight: bold;
+    padding-bottom: 10px;
+    font-weight: bold;
 }
 .SquareIconImg
 {
