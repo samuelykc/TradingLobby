@@ -4,18 +4,20 @@ body
     background-color: #0d1117;
     margin: 20px;
 }
+
 .tableDiff
 {
-    width:80%;
+    width: 80%;
 }
 .tableHistory
 {
-    width:80%;
+    width: 80%;
 }
 .tableAc
 {
-    width:70%;
+    width: 70%;
 }
+
 table
 {
     margin-left: auto;
@@ -35,10 +37,28 @@ th, td
     text-align: center;
     background-color: #121a26;
 }
-.tdPrice
+
+.thDiff
+{
+    width: 120px;
+}
+.thBinance, .thBitMax
+{
+    width: 280px;
+}
+
+.tdClose
 {
     color: white;
     font-size: 20px;
+}
+.tdBid
+{
+    color: #0ecb81;
+}
+.tdAsk
+{
+    color: #f6465d;
 }
 .tdTime
 {
@@ -48,6 +68,9 @@ th, td
 {
     width: 16px;
 }
+
+
+
 .SquareIcon
 {
     width: 250px;
