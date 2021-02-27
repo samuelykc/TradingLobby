@@ -5,27 +5,36 @@ body
     margin: 20px;
 }
 
-.tableDiff
+.board
 {
-    width: 80%;
+    margin-bottom: 25px;
 }
-.tableHistory
-{
-    width: 80%;
-}
-.tableAc
+
+#tableAc
 {
     width: 70%;
 }
-
-table
+#tableDiff
+{
+    width: 80%;
+}
+#tableRecord, #tableHistory
+{
+    width: 93%;
+}
+#tableAc, #tableDiff, #tableRecord, #tableHistory
 {
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 25px;
 }
-caption
+.tableDescription
 {
+    margin-left: 96px;
+}
+
+table caption
+{
+    font-size: 20px;
     margin-bottom: 5px;
 }
 th
@@ -69,6 +78,12 @@ th, td
     width: 16px;
 }
 
+.card
+{
+    background-color: #1e2a3b;
+    padding: 20px 0;
+    border-radius: 20px;
+}
 
 
 .SquareIcon
