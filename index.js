@@ -19,11 +19,16 @@ let ac_BitMax_BNB, ac_BitMax_USDT;
 let Binance_BNB_USDT_close, Binance_BNB_USDT_bid, Binance_BNB_USDT_ask, Binance_BNB_USDT_bidVol, Binance_BNB_USDT_askVol;
 let BitMax_BNB_USDT_close, BitMax_BNB_USDT_bid, BitMax_BNB_USDT_ask, BitMax_BNB_USDT_bidVol, BitMax_BNB_USDT_askVol;
 
-let BinanceBuy_BitMaxSell, BinanceBuy_BitMaxSell_withFee, BinanceBuy_BitMaxSell_MaxVol;
-let BinanceSell_BitMaxBuy, BinanceSell_BitMaxBuy_withFee, BinanceSell_BitMaxBuy_MaxVol;
-let maxProfit, maxProfit_withFee;
+let BinanceBuy_BitMaxSell, BinanceBuy_BitMaxSell_withFee;
+let BinanceSell_BitMaxBuy, BinanceSell_BitMaxBuy_withFee;
+let maxProfit, maxProfit_withFee, maxProfit_Vol, maxProfit_direction;
 
 let Binance_LastUpdate, BitMax_LastUpdate;
+
+
+/* -------------- Profitable Price Records -------------- */
+let priceRecorderCriticalMaxProfitWithFee = 0;
+// let priceRecord = [];
 
 
 /* -------------- Trade History -------------- */
@@ -206,7 +211,7 @@ function binanceGetOrderBookCB(resBody)
     document.getElementById("Binance_BNB_USDT_bid").innerHTML = Binance_BNB_USDT_bid.toFixed(4)+' / '+Binance_BNB_USDT_bidVol.toFixed(2);
     document.getElementById("Binance_BNB_USDT_ask").innerHTML = Binance_BNB_USDT_ask.toFixed(4)+' / '+Binance_BNB_USDT_askVol.toFixed(2);
 
-    recalMaxProfit();
+    recalMaxProfit(Binance_LastUpdate);
 }
 
 function bitmaxGetTickerCB(resBody)
@@ -226,7 +231,7 @@ function bitmaxGetTickerCB(resBody)
     document.getElementById("BitMax_BNB_USDT_ask").innerHTML = BitMax_BNB_USDT_ask.toFixed(4)+' / '+BitMax_BNB_USDT_askVol.toFixed(2);
 
     recalCloseDiff();
-    recalMaxProfit();
+    recalMaxProfit(BitMax_LastUpdate);
 }
 
 //recalculation
@@ -238,23 +243,35 @@ function recalCloseDiff()
         document.getElementById("diff_BNB_USDT_close").innerHTML = (diff>=0? '+': '') + diff.toFixed(4);
     }
 }
-function recalMaxProfit()
+function recalMaxProfit(lastUpdate)
 {
     if(Binance_BNB_USDT_bid && Binance_BNB_USDT_ask && BitMax_BNB_USDT_bid && BitMax_BNB_USDT_ask)
     {
         BinanceBuy_BitMaxSell = BitMax_BNB_USDT_bid - Binance_BNB_USDT_ask;
         BinanceBuy_BitMaxSell_withFee = BitMax_BNB_USDT_bid * (1.0-BitMax_fee) - Binance_BNB_USDT_ask * (1.0+Binance_fee);
-        BinanceBuy_BitMaxSell_MaxVol = Math.min(BitMax_BNB_USDT_bidVol, Binance_BNB_USDT_askVol);
 
         BinanceSell_BitMaxBuy = Binance_BNB_USDT_bid - BitMax_BNB_USDT_ask;
         BinanceSell_BitMaxBuy_withFee = Binance_BNB_USDT_bid * (1.0-Binance_fee) - BitMax_BNB_USDT_ask * (1.0+BitMax_fee);
-        BinanceSell_BitMaxBuy_MaxVol = Math.min(Binance_BNB_USDT_bidVol, BitMax_BNB_USDT_askVol);
 
-        maxProfit = Math.max(BinanceBuy_BitMaxSell, BinanceSell_BitMaxBuy);
-        maxProfit_withFee = Math.max(BinanceBuy_BitMaxSell_withFee, BinanceSell_BitMaxBuy_withFee);
+        if(BinanceBuy_BitMaxSell_withFee > BinanceSell_BitMaxBuy_withFee)
+        {
+            maxProfit = BinanceBuy_BitMaxSell;
+            maxProfit_withFee = BinanceBuy_BitMaxSell_withFee;
+            maxProfit_Vol = Math.min(BitMax_BNB_USDT_bidVol, Binance_BNB_USDT_askVol);
+            maxProfit_direction = 'BinanceBuy_BitMaxSell';
+        }
+        else
+        {
+            maxProfit = BinanceSell_BitMaxBuy;
+            maxProfit_withFee = BinanceSell_BitMaxBuy_withFee;
+            maxProfit_Vol = Math.min(Binance_BNB_USDT_bidVol, BitMax_BNB_USDT_askVol);
+            maxProfit_direction = 'BinanceSell_BitMaxBuy';
+        }
 
         document.getElementById("diff_BNB_USDT_maxProfit").innerHTML = (maxProfit_withFee>=0? '+': '') + maxProfit_withFee.toFixed(4)
             +"<br/> ("+ (maxProfit>=0? '+': '') + maxProfit.toFixed(4) +")";
+
+        priceRecorderCheckProfit(lastUpdate);
     }
 }
 
@@ -262,3 +279,25 @@ function recalMaxProfit()
 
 /* -------------- Profitable Price Records -------------- */
 
+function priceRecorderCheckProfit(lastUpdate)
+{
+    if(maxProfit_withFee && maxProfit_direction && maxProfit_Vol &&
+        maxProfit_withFee >= priceRecorderCriticalMaxProfitWithFee)
+    {
+        let newRecord;
+
+        if(maxProfit_direction === 'BinanceBuy_BitMaxSell')
+            newRecord = [lastUpdate, Binance_BNB_USDT_ask, Binance_BNB_USDT_askVol, BitMax_BNB_USDT_bid, BitMax_BNB_USDT_bidVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
+        else
+            newRecord = [lastUpdate, Binance_BNB_USDT_bid, Binance_BNB_USDT_bidVol, BitMax_BNB_USDT_ask, BitMax_BNB_USDT_askVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
+
+        // priceRecord.push(newRecord);
+
+        const table = document.getElementById("tableRecord");
+        let row = table.insertRow(0);
+        row.insertCell(0).innerHTML = newRecord[0];
+        row.insertCell(1).innerHTML = newRecord[1]+' / '+newRecord[2];
+        row.insertCell(2).innerHTML = newRecord[3]+' / '+newRecord[4];
+        row.insertCell(3).innerHTML = newRecord[5]+' / '+newRecord[6];
+    }
+}

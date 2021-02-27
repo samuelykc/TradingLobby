@@ -69,6 +69,11 @@ th, td
 {
     color: #f6465d;
 }
+.tdLastUpdate
+{
+    color: #ababab;
+    line-height: 12px
+}
 .tdTime
 {
     width: 160px;
