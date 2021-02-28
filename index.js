@@ -2,7 +2,9 @@ const { ipcRenderer } = require('electron')
 
 const binanceInterface = require('./js/binanceInterface');
 const bitmaxInterface = require('./js/bitmaxInterface');
+const fileIOInterface = require('./js/fileIOInterface');
 
+const dateFormat = require('dateformat');
 
 
 
@@ -23,15 +25,21 @@ let BinanceBuy_BitMaxSell, BinanceBuy_BitMaxSell_withFee;
 let BinanceSell_BitMaxBuy, BinanceSell_BitMaxBuy_withFee;
 let maxProfit, maxProfit_withFee, maxProfit_Vol, maxProfit_direction;
 
-let Binance_LastUpdate, BitMax_LastUpdate;
+let Binance_LastUpdate, BitMax_LastUpdate;  //ms
 
 
 /* -------------- Profitable Price Records -------------- */
 let priceRecorderCriticalMaxProfitWithFee = 0;
-// let priceRecord = [];
+let priceRecorderMaxLastUpdate = 1000;  //ms
+
+const priceRecordDir = "data/";
+const priceRecordFile = "priceRecord.csv";
+fileIOInterface.makeDirSync(priceRecordDir);
 
 
 /* -------------- Trade History -------------- */
+let traderCriticalMaxProfitWithFee = 0;
+let traderMaxLastUpdate = 1000;  //ms
 
 
 
@@ -41,6 +49,8 @@ let priceRecorderCriticalMaxProfitWithFee = 0;
 //once the window is ready, loop the fetchers
 window.onload = function()
 {
+    priceRecorderLoad();
+
     asyncAccountFetcher();
     asyncMarketFetcher();
 };
@@ -279,10 +289,46 @@ function recalMaxProfit(lastUpdate)
 
 /* -------------- Profitable Price Records -------------- */
 
+function priceRecorderClearUI()
+{
+    // const table = document.getElementById("tableRecord");
+    // let row = table.deleteRow(1);
+    document.querySelectorAll('.tableRecordRow').forEach(e => e.remove());
+    // $(".tableRecordRow tr").remove();
+}
+
+function priceRecorderAppendUI(record)  //append to the first row
+{
+    if(!record || record.length < 7)
+    {
+        console.error("invalid record for appending to UI: "+record);
+        return;
+    }
+
+    const table = document.getElementById("tableRecord");
+    let row = table.insertRow(1);
+    row.className = "tableRecordRow";
+    row.insertCell(0).innerHTML = dateFormat(new Date(parseInt(record[0])), "yyyy-mm-dd HH:MM:ss");
+    row.insertCell(1).innerHTML = record[1]+' / '+record[2];
+    row.insertCell(2).innerHTML = record[3]+' / '+record[4];
+    row.insertCell(3).innerHTML = parseFloat(record[5]).toFixed(4)+' / '+record[6];
+}
+
+function priceRecorderLoad()
+{
+    fileIOInterface.readCSVRecords(priceRecordDir+priceRecordFile, priceRecorderLoadCallback);
+}
+
+function priceRecorderLoadCallback(records)
+{
+    records.forEach(function(record) { priceRecorderAppendUI(record); });
+}
+
 function priceRecorderCheckProfit(lastUpdate)
 {
     if(maxProfit_withFee && maxProfit_direction && maxProfit_Vol &&
-        maxProfit_withFee >= priceRecorderCriticalMaxProfitWithFee)
+        maxProfit_withFee >= priceRecorderCriticalMaxProfitWithFee &&
+        Binance_LastUpdate <= priceRecorderMaxLastUpdate && BitMax_LastUpdate <= priceRecorderMaxLastUpdate)
     {
         let newRecord;
 
@@ -291,13 +337,7 @@ function priceRecorderCheckProfit(lastUpdate)
         else
             newRecord = [lastUpdate, Binance_BNB_USDT_bid, Binance_BNB_USDT_bidVol, BitMax_BNB_USDT_ask, BitMax_BNB_USDT_askVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
 
-        // priceRecord.push(newRecord);
-
-        const table = document.getElementById("tableRecord");
-        let row = table.insertRow(0);
-        row.insertCell(0).innerHTML = newRecord[0];
-        row.insertCell(1).innerHTML = newRecord[1]+' / '+newRecord[2];
-        row.insertCell(2).innerHTML = newRecord[3]+' / '+newRecord[4];
-        row.insertCell(3).innerHTML = newRecord[5]+' / '+newRecord[6];
+        priceRecorderAppendUI(newRecord);
+        fileIOInterface.appendRecordSync(priceRecordDir+priceRecordFile, newRecord);
     }
 }

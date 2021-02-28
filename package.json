@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "crypto-js": "^4.0.0",
+    "dateformat": "^4.5.1",
     "follow-redirects": "^1.13.2"
   }
 }
