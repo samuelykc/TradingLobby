@@ -6,6 +6,11 @@ const CSVCellSeparator = ", ";
 
 module.exports = {
 
+    checkDirSync(dir)
+    {
+        return fs.existsSync(dir);
+    },
+
     makeDirSync(dir)
     {
         if (!fs.existsSync(dir))

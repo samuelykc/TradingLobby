@@ -66,9 +66,9 @@
             <td class="tdAsk" id="BitMax_BNB_USDT_ask">N/A</td>
           </tr>
           <tr>
-            <td class="tdLastUpdate" id="Binance_LastUpdate">N/A</td>
+            <td class="tdLastUpdate" id="Binance_OrderBookLastUpdatePassed">N/A</td>
             <td></td>
-            <td class="tdLastUpdate" id="BitMax_LastUpdate">N/A</td>
+            <td class="tdLastUpdate" id="BitMax_OrderBookLastUpdatePassed">N/A</td>
           </tr>
         </table>
         <p class="tableDescription">
@@ -80,6 +80,14 @@
     </div>
 
     <div class="card">
+        <div class="input">
+            <label for="priceRecorderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
+            <input type="number" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
+        </div>
+        <div class="input">
+            <label for="priceRecorderMaxLastUpdate">Max last update(ms):</label>
+            <input type="number" id="priceRecorderMaxLastUpdate" name="priceRecorderMaxLastUpdate" value="1000">
+        </div>
         <button class="waves-effect waves-light btn" onclick="priceRecorderClearUI()">Hide Old Records</button>
         <div class="board">
             <table id="tableRecord">
@@ -94,11 +102,21 @@
                 <td class="tdTime">2021-02-26 18:10:07</td>
                 <td>225.311 / 6.5</td>
                 <td>224.821 / 2.0</td>
-                <td>+1.510 / 2.0</td>
+                <td>1.510 / 2.0</td>
               </tr> -->
             </table>
         </div>
+    </div>
 
+    <div class="card">
+        <div class="input">
+            <label for="traderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
+            <input type="number" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
+        </div>
+        <div class="input">
+            <label for="traderMaxLastUpdate">Max last update(ms):</label>
+            <input type="number" id="traderMaxLastUpdate" name="traderMaxLastUpdate" value="1000">
+        </div>
         <div class="board">
             <table id="tableHistory">
               <caption>Trade History</caption>
