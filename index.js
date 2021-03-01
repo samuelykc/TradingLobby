@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron')
 const binanceInterface = require('./js/binanceInterface');
 const bitmaxInterface = require('./js/bitmaxInterface');
 const fileIOInterface = require('./js/fileIOInterface');
+const mathExtend = require('./js/mathExtend');
 
 const dateFormat = require('dateformat');
 
@@ -22,7 +23,7 @@ let BitMax_fee = 0.001;
 let ac_Binance_BNB, ac_Binance_USDT;
 let ac_BitMax_BNB, ac_BitMax_USDT;
 
-let Binance_GetWalletAllCoinLastUpdate, BitMax_GetWalletAllCoinLastUpdate;  //ms
+let Binance_WalletLastUpdate, BitMax_WalletLastUpdate;  //timestamp
 
 
 /* ------------------ BNB/USDT Market ------------------ */
@@ -33,7 +34,7 @@ let BinanceBuy_BitMaxSell, BinanceBuy_BitMaxSell_withFee;
 let BinanceSell_BitMaxBuy, BinanceSell_BitMaxBuy_withFee;
 let maxProfit, maxProfit_withFee, maxProfit_Vol, maxProfit_direction;
 
-let Binance_PriceLastUpdate, Binance_OrderBookLastUpdate, BitMax_OrderBookLastUpdate;  //ms
+let Binance_PriceLastUpdate, Binance_OrderBookLastUpdate, BitMax_OrderBookLastUpdate;  //timestamp
 
 
 /* ------------------ Profitable Price Records ------------------ */
@@ -125,12 +126,16 @@ async function asyncAccountFetcher() {
 
         //calculate time since last update
         let currentTime = Date.now();
-        let Binance_GetWalletAllCoinLastUpdatePassed = Math.abs(currentTime - Binance_GetWalletAllCoinLastUpdate);
-        let BitMax_GetWalletAllCoinLastUpdatePassed = Math.abs(currentTime - BitMax_GetWalletAllCoinLastUpdate);
+        let Binance_WalletLastUpdatePassed = Math.abs(currentTime - Binance_WalletLastUpdate);
+        let BitMax_WalletLastUpdatePassed = Math.abs(currentTime - BitMax_WalletLastUpdate);
+
+        //show time
+        document.getElementById("Binance_WalletLastUpdatePassed").innerHTML = Binance_WalletLastUpdatePassed + " ms";
+        document.getElementById("BitMax_WalletLastUpdatePassed").innerHTML = BitMax_WalletLastUpdatePassed + " ms";
 
         //resume from failed respond waiting
-        if(!binanceGetWalletAllCoinRespondHandled && Binance_GetWalletAllCoinLastUpdatePassed > 1000) binanceGetWalletAllCoinRespondHandled = true;
-        if(!bitmaxGetWalletAllCoinRespondHandled && BitMax_GetWalletAllCoinLastUpdatePassed > 1000) bitmaxGetWalletAllCoinRespondHandled = true;
+        if(!binanceGetWalletAllCoinRespondHandled && Binance_WalletLastUpdatePassed > 1000) binanceGetWalletAllCoinRespondHandled = true;
+        if(!bitmaxGetWalletAllCoinRespondHandled && BitMax_WalletLastUpdatePassed > 1000) bitmaxGetWalletAllCoinRespondHandled = true;
         
         await delay(1000);
     }
@@ -141,6 +146,8 @@ function binanceGetWalletAllCoinCB(resBody)
 {
     if(resBody)
     {
+        Binance_WalletLastUpdate = Date.now();
+
         ac_Binance_BNB = parseFloat(resBody.find(e => e.coin === "BNB").free);
         ac_Binance_USDT = parseFloat(resBody.find(e => e.coin === "USDT").free);
 
@@ -157,6 +164,8 @@ function bitmaxGetWalletAllCoinCB(resBody)
 {
     if(resBody)
     {
+        BitMax_WalletLastUpdate = Date.now();
+
         let BNB_record = resBody.data.find(e => e.asset === "BNB");
         let USDT_record = resBody.data.find(e => e.asset === "USDT");
 
@@ -236,6 +245,7 @@ async function asyncMarketFetcher() {
         let Binance_OrderBookLastUpdatePassed = Math.abs(currentTime - Binance_OrderBookLastUpdate);
         let BitMax_OrderBookLastUpdatePassed = Math.abs(currentTime - BitMax_OrderBookLastUpdate);
 
+        //show time
         document.getElementById("Binance_OrderBookLastUpdatePassed").innerHTML = Binance_OrderBookLastUpdatePassed + " ms";
         document.getElementById("BitMax_OrderBookLastUpdatePassed").innerHTML = BitMax_OrderBookLastUpdatePassed + " ms";
 
@@ -428,6 +438,15 @@ function priceRecorderCheckProfit(lastUpdate)
 
 /* ------------------ Trade History ------------------ */
 
+let traderActive = false;
+function toggleTrader()
+{
+    traderActive = !traderActive;
+
+    const toggleTraderBtn = document.getElementById("toggleTraderBtn");
+    toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
+}
+
 function tradeHistoryUI(trade)  //append as the first row
 {
     if(!trade || trade.length < 7)
@@ -458,10 +477,15 @@ function tradeHistoryLoadCallback(trades)
     trades.forEach(function(trade) { tradeHistoryUI(trade); });
 }
 
-let traderActive = false;
 function traderCheckProfit()
 {
     if(!traderActive) return;
+
+    console.log("maxProfit_withFee: "+maxProfit_withFee);
+    console.log("maxProfit_direction: "+maxProfit_direction);
+    console.log("maxProfit_Vol: "+maxProfit_Vol);
+    console.log("ac_Binance_BNB + ac_BitMax_BNB: "+(ac_Binance_BNB + ac_BitMax_BNB));
+    console.log("ac_Binance_USDT + ac_BitMax_USDT: "+(ac_Binance_USDT + ac_BitMax_USDT));
 
     const traderCriticalMaxProfitWithFee = document.getElementById("traderCriticalMaxProfitWithFee");
     let traderCriticalMaxProfitWithFeeValue = parseFloat(traderCriticalMaxProfitWithFee.value);
@@ -472,7 +496,7 @@ function traderCheckProfit()
     let currentTime = Date.now();
 
     if(maxProfit_withFee && maxProfit_direction && maxProfit_Vol &&     //best deal data ready
-        ac_Binance_BNB && ac_Binance_USDT && ac_BitMax_BNB && ac_BitMax_USDT &&     //account balance ready
+        (ac_Binance_BNB + ac_BitMax_BNB) && (ac_Binance_USDT + ac_BitMax_USDT) &&     //account balance consists of both coins
         maxProfit_withFee >= traderCriticalMaxProfitWithFeeValue &&     //deal is good enough
         Math.abs(currentTime - Binance_OrderBookLastUpdate) <= traderMaxLastUpdateValue &&      //data is fresh
         Math.abs(currentTime - BitMax_OrderBookLastUpdate) <= traderMaxLastUpdateValue)
@@ -503,24 +527,42 @@ async function traderTrade()
     binancePostOrderFilled = bitmaxPostOrderFilled = false;
 
 
-    //enfore safe trading, which raise buy price and lower sell price, each by half of the max profit
-    //if both order are executed exactly at the safe trading price, the resulting gain should be about +/-0
-    //this could allow the orders to be fulfilled even if the best prices have shifted a little bit against us
+
+    //sides
     let binanceSide = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? "BUY" : "SELL";
     let bitmaxSide = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? "BUY" : "SELL";
 
+    //prices
+    let binancePrice = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? Binance_BNB_USDT_ask+maxProfit_withFee/2 : Binance_BNB_USDT_bid-maxProfit_withFee/2;
+    let bitmaxPrice = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? BitMax_BNB_USDT_ask+maxProfit_withFee/2 : BitMax_BNB_USDT_bid-maxProfit_withFee/2;
     
+    /* enfored safe trading, which raise buy price and lower sell price, each by half of the max profit
+       if both order are executed exactly at the safe trading price, the resulting gain should be about +/-0
+       this could allow the orders to be fulfilled even if the best prices have shifted a little bit against us */
+
+    //quantities
+    let binanceAffordable = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? ac_Binance_USDT/binancePrice : ac_Binance_BNB;
+    let bitmaxQuantity = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? ac_BitMax_USDT/bitmaxPrice : ac_BitMax_BNB;
+    let quantity = mathExtend.floor10(Math.min(binanceAffordable, bitmaxQuantity, maxProfit_Vol), -1);    //round down quantity
+
+
+    console.log('binanceSide: '+binanceSide);
+    console.log('bitmaxSide: '+bitmaxSide);
+    console.log('binancePrice: '+binancePrice);
+    console.log('bitmaxPrice: '+bitmaxPrice);
+    console.log('quantity: '+quantity);
+
     //Binance
     const parms = {
         symbol: "BNBUSDT",
-        side: binanceSide,
+        side: "SELL",
         type: "LIMIT",
         timeInForce: "GTC", //GTC (Good-Til-Canceled) orders are effective until they are executed or canceled.
         quantity: 0.1,
         price: 300,
         newClientOrderId: "ATM_generated_order_1"
     };
-    binanceInterface.postOrderTest(parms, binancePostOrderCB);
+    binanceInterface.postOrder(parms, binancePostOrderCB);
 
 
 
@@ -563,11 +605,12 @@ async function traderTrade()
 
 function binancePostOrderCB(resBody)
 {
+    console.log('binancePostOrderCB: ')
     console.log(resBody)
 
     if(resBody && !resBody.code)
     {
-        // BitMax_BNB_USDT_close = parseFloat(resBody.data.close);
+        // BitMax_BNB_USDT_close = parseFloat(resBody.origQty);
         // BitMax_BNB_USDT_bid = parseFloat(resBody.data.bid[0]);
         // BitMax_BNB_USDT_ask = parseFloat(resBody.data.ask[0]);
         // BitMax_BNB_USDT_bidVol = parseFloat(resBody.data.bid[1]);
@@ -592,8 +635,3 @@ function binancePostOrderCB(resBody)
 
     binancePostOrderHandled = true;
 }
-
-
-//test code
-maxProfit_direction == 'BinanceBuy_BitMaxSell'
-traderTrade()

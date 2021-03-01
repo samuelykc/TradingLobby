@@ -58,7 +58,7 @@ module.exports = {
         APISecretKey = secretKey;
     },
 
-    /* -------------- Public -------------- */
+    /* -------------- Public API -------------- */
 
     getPrice(parms, callback)
     {
@@ -85,7 +85,7 @@ module.exports = {
     },
 
 
-    /* -------------- Private -------------- */
+    /* -------------- Private API -------------- */
 
     getWalletAllCoin(callback)
     {
@@ -121,6 +121,25 @@ module.exports = {
             'method': 'POST',
             'hostname': hostname,
             'path': '/api/v3/order/test?' + querystring.stringify(parms),
+            'headers': {
+                'Content-Type': 'application/json',
+                'X-MBX-APIKEY': APIPublicKey
+            },
+            'maxRedirects': 20
+        };
+
+        httpsRequest(options, callback);
+    },
+
+    postOrder(parms, callback)
+    {
+        parms.timestamp = Date.now();
+        parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
+
+        var options = {
+            'method': 'POST',
+            'hostname': hostname,
+            'path': '/api/v3/order?' + querystring.stringify(parms),
             'headers': {
                 'Content-Type': 'application/json',
                 'X-MBX-APIKEY': APIPublicKey

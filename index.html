@@ -40,6 +40,12 @@
             <td id="ac_BitMax_USDT">N/A</td>
             <td id="ac_sum_USDT">N/A</td>
           </tr>
+          <tr>
+            <td></td>
+            <td class="tdLastUpdate" id="Binance_WalletLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="BitMax_WalletLastUpdatePassed">N/A</td>
+            <td></td>
+          </tr>
         </table>
     </div>
 
@@ -117,6 +123,7 @@
             <label for="traderMaxLastUpdate">Max last update(ms):</label>
             <input type="number" id="traderMaxLastUpdate" name="traderMaxLastUpdate" value="1000">
         </div>
+        <button class="waves-effect waves-light btn" id="toggleTraderBtn" onclick="toggleTrader()">Start trading</button>
         <div class="board">
             <table id="tableHistory">
               <caption>Trade History</caption>

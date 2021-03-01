@@ -58,7 +58,7 @@ module.exports = {
         APISecretKey = secretKey;
     },
 
-    /* -------------- Public -------------- */
+    /* -------------- Public API -------------- */
 
     getTicker(parms, callback)
     {
@@ -73,7 +73,7 @@ module.exports = {
     },
 
 
-    /* -------------- Private -------------- */
+    /* -------------- Private API -------------- */
 
     getWalletAllCoin(callback)
     {
