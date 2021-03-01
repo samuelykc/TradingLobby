@@ -6,8 +6,7 @@ const CryptoJS = require("crypto-js");
 const hostname = 'bitmax.io';
 
 
-const APIPublicKey = 'Lfp3MHPCm7z3PTUOGetaZB5NAC7tPMKX';
-const APISecretKey = 'Dw5UJC8crdpURSdYfiTC5kazypVcAKsvxCVuKf89AIruAuEYjdIuRITymH6wVPsU';
+let APIPublicKey, APISecretKey;
 
 
 
@@ -32,13 +31,14 @@ function httpsRequest(options, callback)
             }
             catch(e)
             {
-                console.error(e);
+                console.error(e.message);
                 callback('');
             }
         });
 
         res.on("error", function (error) {
             console.error(error);
+            callback('');
         });
     });
 
@@ -50,6 +50,14 @@ function httpsRequest(options, callback)
 
 module.exports = {
 
+    /* -------------- Setter -------------- */
+
+    setAPIKeys(publicKey, secretKey)
+    {
+        APIPublicKey = publicKey;
+        APISecretKey = secretKey;
+    },
+
     /* -------------- Public -------------- */
 
     getTicker(parms, callback)
@@ -57,7 +65,7 @@ module.exports = {
         let options = {
             'method': 'GET',
             'hostname': hostname,
-            'path': '/api/pro/v1/ticker' + '?' + querystring.stringify(parms),
+            'path': '/api/pro/v1/ticker?' + querystring.stringify(parms),
             'maxRedirects': 20
         };
 

@@ -6,8 +6,7 @@ const CryptoJS = require("crypto-js");
 const hostname = 'api.binance.com';
 
 
-const APIPublicKey = '7u6GIGcNyMTrgWlLX3xyCXWp7iXJl6HUShINSZELiWRh0SSPP4srXDXWYrGPseId';
-const APISecretKey = 'KxhMXoRfxPgPNyvBaEdbsn1I4v75paTJIQ1Pi7NJobtZ0HUyZzw9SHdmbPq0AVYK';
+let APIPublicKey, APISecretKey;
 
 
 
@@ -32,13 +31,14 @@ function httpsRequest(options, callback)
             }
             catch(e)
             {
-                console.error(e);
+                console.error(e.message);
                 callback('');
             }
         });
 
         res.on("error", function (error) {
             console.error(error);
+            callback('');
         });
     });
 
@@ -49,6 +49,14 @@ function httpsRequest(options, callback)
 
 
 module.exports = {
+
+    /* -------------- Setter -------------- */
+
+    setAPIKeys(publicKey, secretKey)
+    {
+        APIPublicKey = publicKey;
+        APISecretKey = secretKey;
+    },
 
     /* -------------- Public -------------- */
 
@@ -102,5 +110,24 @@ module.exports = {
         };
 
         httpsRequest(options, callback);
-    }
+    },
+
+    postOrderTest(parms, callback)
+    {
+        parms.timestamp = Date.now();
+        parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
+
+        var options = {
+            'method': 'POST',
+            'hostname': hostname,
+            'path': '/api/v3/order/test?' + querystring.stringify(parms),
+            'headers': {
+                'Content-Type': 'application/json',
+                'X-MBX-APIKEY': APIPublicKey
+            },
+            'maxRedirects': 20
+        };
+
+        httpsRequest(options, callback);
+    },
 };

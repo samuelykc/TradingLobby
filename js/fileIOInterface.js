@@ -19,6 +19,20 @@ module.exports = {
         }
     },
 
+    readJSONSync(filename, callback)
+    {
+        let data = fs.readFileSync(filename);
+        let json = JSON.parse(data);
+    
+        callback(json);
+    },
+
+    writeJSONSync(filename, json)
+    {
+        let data = JSON.stringify(json);
+        fs.writeFileSync(filename, data);
+    },
+
     readCSVRecords(filename, callback)
     {
         try
