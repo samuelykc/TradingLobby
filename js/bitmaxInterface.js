@@ -93,5 +93,28 @@ module.exports = {
         };
 
         httpsRequest(options, callback);
-    }
+    },
+
+    postOrder(parms, callback)
+    {
+        let timestamp = Date.now();
+        let signature = CryptoJS.HmacSHA256(timestamp + 'order', APISecretKey).toString();
+
+        parms.time = timestamp;
+
+        let options = {
+            'method': 'POST',
+            'hostname': hostname,
+            'path': '/4/api/pro/v1/cash/order?' + querystring.stringify(parms),
+            'headers': {
+                'x-auth-key': APIPublicKey,
+                'x-auth-timestamp': timestamp,
+                'x-auth-signature': signature
+            },
+            'maxRedirects': 20
+        };
+
+            console.log(options);
+        httpsRequest(options, callback);
+    },
 };

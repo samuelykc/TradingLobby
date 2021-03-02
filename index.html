@@ -14,6 +14,9 @@
 
 
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/modalBox.css">
+
+    <script src="js/modalBox.js"></script>
     <script src="index.js"></script>
 </head>
 
@@ -87,6 +90,39 @@
 
     <div class="card">
         <div class="input">
+            <label for="traderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
+            <input type="number" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
+        </div>
+        <div class="input">
+            <label for="traderMaxLastUpdate">Max last update(ms):</label>
+            <input type="number" id="traderMaxLastUpdate" name="traderMaxLastUpdate" value="1000">
+        </div>
+        <button class="waves-effect waves-light btn" id="toggleTraderBtn" onclick="toggleTrader()">Start trading</button>
+        <div class="board">
+            <table id="tableHistory">
+              <caption>Trade History</caption>
+              <tr>
+                <th>Time</th>
+                <th>Exchange</th>
+                <th>Side</th>
+                <th>Order</th>
+                <th>Fill</th>
+                <th>Status</th>
+              </tr>
+              <!-- <tr>
+                <td class="tdTime">2021-02-26 18:10:07</td>
+                <td>Binance</td>
+                <td style="color: #f6465d">Sell</td>
+                <td>224.8 / 2.0</td>
+                <td>224 / 1.0</td>
+                <td>active</td>
+              </tr> -->
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="input">
             <label for="priceRecorderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
             <input type="number" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
         </div>
@@ -114,45 +150,23 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="input">
-            <label for="traderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
-            <input type="number" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
-        </div>
-        <div class="input">
-            <label for="traderMaxLastUpdate">Max last update(ms):</label>
-            <input type="number" id="traderMaxLastUpdate" name="traderMaxLastUpdate" value="1000">
-        </div>
-        <button class="waves-effect waves-light btn" id="toggleTraderBtn" onclick="toggleTrader()">Start trading</button>
-        <div class="board">
-            <table id="tableHistory">
-              <caption>Trade History</caption>
-              <tr>
-                <th></th>
-                <th colspan="3">Readings</th>
-                <th colspan="4">Executiion</th>
-              </tr>
-              <tr>
-                <th>Time</th>
-                <th>Binance</th>
-                <th>diff</th>
-                <th>BitMax</th>
-                <th colspan="2">Binance</th>
-                <th colspan="2">BitMax</th>
-              </tr>
-              <tr>
-                <td class="tdTime">2021-02-26 18:10:07</td>
-                <td>225.311</td>
-                <td>+1.510</td>
-                <td>224.821</td>
-                <td >225</td>
-                <td class="tdResult">O</td>
-                <td>224</td>
-                <td class="tdResult">X</td>
-              </tr>
-            </table>
-        </div>
+
+
+
+
+
+
+
+    <div id="modalBox" class="modal">
+
+      <!-- Modal content -->
+      <div class="modalContent">
+        <span class="close">&times;</span>
+        <p id="modalText"></p>
+      </div>
+
     </div>
+
 
 
     <!--JavaScript at end of body for optimized loading-->

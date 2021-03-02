@@ -149,4 +149,23 @@ module.exports = {
 
         httpsRequest(options, callback);
     },
+
+    getOrder(parms, callback)
+    {
+        parms.timestamp = Date.now();
+        parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
+
+        var options = {
+            'method': 'GET',
+            'hostname': hostname,
+            'path': '/api/v3/order?' + querystring.stringify(parms),
+            'headers': {
+                'Content-Type': 'application/json',
+                'X-MBX-APIKEY': APIPublicKey
+            },
+            'maxRedirects': 20
+        };
+
+        httpsRequest(options, callback);
+    },
 };

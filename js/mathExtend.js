@@ -1,5 +1,4 @@
 module.exports = {
-
   /**
    * Decimal adjustment of a number.
    *
@@ -25,44 +24,40 @@ module.exports = {
     // Shift back
     value = value.toString().split('e');
     return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
-  },
-
-  // Decimal round
-  round10(value, exp)
-  {
-    this.decimalAdjust('round', value, exp)
-  },
-  // Decimal floor
-  floor10(value, exp)
-  {
-    this.decimalAdjust('floor', value, exp)
-  },
-  // Decimal ceil
-  ceil10(value, exp)
-  {
-    this.decimalAdjust('ceil', value, exp)
   }
 
-  /*
-    // Round
-    round10(55.55, -1);   // 55.6
-    round10(55.549, -1);  // 55.5
-    round10(55, 1);       // 60
-    round10(54.9, 1);     // 50
-    round10(-55.55, -1);  // -55.5
-    round10(-55.551, -1); // -55.6
-    round10(-55, 1);      // -50
-    round10(-55.1, 1);    // -60
-    // Floor
-    floor10(55.59, -1);   // 55.5
-    floor10(59, 1);       // 50
-    floor10(-55.51, -1);  // -55.6
-    floor10(-51, 1);      // -60
-    // Ceil
-    ceil10(55.51, -1);    // 55.6
-    ceil10(51, 1);        // 60
-    ceil10(-55.59, -1);   // -55.5
-    ceil10(-59, 1);       // -50
-  */
-
 };
+
+Math.round10 = function(value, exp) {
+  return mathExtend.decimalAdjust('round', value, exp);
+};
+
+Math.floor10 = function(value, exp) {
+  return mathExtend.decimalAdjust('floor', value, exp);
+};
+
+Math.ceil10 = function(value, exp) {
+  return mathExtend.decimalAdjust('ceil', value, exp);
+};
+
+/*
+  // Round
+  round10(55.55, -1);   // 55.6
+  round10(55.549, -1);  // 55.5
+  round10(55, 1);       // 60
+  round10(54.9, 1);     // 50
+  round10(-55.55, -1);  // -55.5
+  round10(-55.551, -1); // -55.6
+  round10(-55, 1);      // -50
+  round10(-55.1, 1);    // -60
+  // Floor
+  floor10(55.59, -1);   // 55.5
+  floor10(59, 1);       // 50
+  floor10(-55.51, -1);  // -55.6
+  floor10(-51, 1);      // -60
+  // Ceil
+  ceil10(55.51, -1);    // 55.6
+  ceil10(51, 1);        // 60
+  ceil10(-55.59, -1);   // -55.5
+  ceil10(-59, 1);       // -50
+*/
