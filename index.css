@@ -61,11 +61,11 @@ th, td
     color: white;
     font-size: 20px;
 }
-.tdBid
+.tdBid, .tdBuy
 {
     color: #0ecb81;
 }
-.tdAsk
+.tdAsk, .tdSell
 {
     color: #f6465d;
 }
@@ -82,7 +82,7 @@ th, td
 .card
 {
     background-color: #1e2a3b;
-    padding: 20px 0;
+    padding: 20px 10px 10px 0;
     border-radius: 20px;
 }
 
@@ -99,4 +99,28 @@ th, td
 button
 {
     margin-left: 30px;
+}
+
+
+
+
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }

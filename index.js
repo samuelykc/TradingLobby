@@ -99,7 +99,7 @@ window.onload = function()
         // timeInForce: "GTC"
         // id: "ATM_generated_order_1"
     };
-    bitmaxInterface.postOrder(parms, binanceGetOrderCB);
+    bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
 };
 
 
@@ -396,7 +396,7 @@ function priceRecorderClearUI() //clear all rows
 
 function priceRecorderAppendUI(record)  //append as the first row
 {
-    if(!record || record.length < 7)
+    if(!record || record.length < 8)
     {
         console.error("invalid price record for appending to UI: "+record);
         return;
@@ -406,8 +406,8 @@ function priceRecorderAppendUI(record)  //append as the first row
     let row = table.insertRow(1);
     row.className = "tableRecordRow";
     row.insertCell(0).innerHTML = dateFormat(new Date(parseInt(record[0])), "yyyy-mm-dd HH:MM:ss");
-    row.insertCell(1).innerHTML = record[1]+' / '+record[2];
-    row.insertCell(2).innerHTML = record[3]+' / '+record[4];
+    row.insertCell(1).innerHTML = "<span class='"+(record[7]=='BinanceBuy_BitMaxSell'? "tdBuy":"tdSell")+"'>"+record[1]+' / '+record[2]+"<span/>";
+    row.insertCell(2).innerHTML = "<span class='"+(record[7]=='BinanceSell_BitMaxBuy'? "tdBuy":"tdSell")+"'>"+record[3]+' / '+record[4]+"<span/>";
     row.insertCell(3).innerHTML = parseFloat(record[5]).toFixed(4)+' / '+record[6];
 }
 
@@ -600,7 +600,7 @@ async function traderTrade()
         orderPrice: "300",
         // id: "ATM_generated_order_1"
     };
-    bitmaxInterface.getOrder(parmsBitmax, binanceGetOrderCB);
+    bitmaxInterface.postOrder(parmsBitmax, bitmaxPostOrderCB);
 
 
 
