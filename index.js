@@ -48,7 +48,8 @@ const priceRecordFile = "priceRecord.csv";
 // let traderCriticalMaxProfitWithFee = 0;
 // let traderMaxLastUpdate = 1000;  //ms
 
-const tradeHistoryFile = "tradeHistory.csv";
+const tradeHistoryFile = "tradeHistory.json";
+let tradeHistory = {};
 
 
 
@@ -90,17 +91,24 @@ window.onload = function()
     // toggleTrader();
     // traderTrade();
 
-    let parms = {
-        symbol: "BNB/USDT",
-        side: "sell",
-        orderType: "limit",
-        orderQty: "0.1",
-        orderPrice: "300.0",
-        // timeInForce: "GTC"
-        // id: "ATM_generated_order_1"
-    };
-    bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
+    //test code
+    // let parms = {
+    //     symbol: "BNB/USDT",
+    //     side: "sell",
+    //     orderType: "limit",
+    //     orderQty: "0.1",
+    //     orderPrice: "300.0",
+    //     // timeInForce: "GTC"
+    //     // id: "ATM_generated_order_1"
+    // };
+    // bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
 };
+
+window.onbeforeunload = (e) => {
+    //save trade history
+    let tradeHistoryFileDir = dataDir+tradeHistoryFile;
+    fileIOInterface.writeJSONSync(tradeHistoryFileDir, tradeHistory);
+}
 
 
 
@@ -405,9 +413,17 @@ function priceRecorderAppendUI(record)  //append as the first row
     const table = document.getElementById("tableRecord");
     let row = table.insertRow(1);
     row.className = "tableRecordRow";
+
     row.insertCell(0).innerHTML = dateFormat(new Date(parseInt(record[0])), "yyyy-mm-dd HH:MM:ss");
-    row.insertCell(1).innerHTML = "<span class='"+(record[7]=='BinanceBuy_BitMaxSell'? "tdBuy":"tdSell")+"'>"+record[1]+' / '+record[2]+"<span/>";
-    row.insertCell(2).innerHTML = "<span class='"+(record[7]=='BinanceSell_BitMaxBuy'? "tdBuy":"tdSell")+"'>"+record[3]+' / '+record[4]+"<span/>";
+
+    let cell1 = row.insertCell(1);
+    cell1.innerHTML = record[1]+' / '+record[2];
+    cell1.className = record[7]=='BinanceBuy_BitMaxSell'? "tdBuy":"tdSell";
+
+    let cell2 = row.insertCell(2);
+    cell2.innerHTML = record[3]+' / '+record[4];
+    cell2.className = record[7]=='BinanceSell_BitMaxBuy'? "tdBuy":"tdSell";
+
     row.insertCell(3).innerHTML = parseFloat(record[5]).toFixed(4)+' / '+record[6];
 }
 
@@ -458,10 +474,11 @@ function priceRecorderCheckProfit(lastUpdate)
 let traderActive = false;
 function toggleTrader()
 {
-    traderActive = !traderActive;
+    testTrade()
+    // traderActive = !traderActive;
 
-    const toggleTraderBtn = document.getElementById("toggleTraderBtn");
-    toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
+    // const toggleTraderBtn = document.getElementById("toggleTraderBtn");
+    // toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
 }
 
 function tradeHistoryUI(trade)  //append as the first row, or update row
@@ -472,31 +489,54 @@ function tradeHistoryUI(trade)  //append as the first row, or update row
         return;
     }
 
-    const table = document.getElementById("tableHistory");
-    let row = table.insertRow(1);
-    row.className = "tableTradeRow";
-    row.id = trade[0];
-    row.insertCell(0).innerHTML = dateFormat(new Date(parseInt(trade[1])), "yyyy-mm-dd HH:MM:ss");
-    row.insertCell(1).innerHTML = trade[2];
-    let cell2 = row.insertCell(2);
-    cell2.innerHTML = trade[3];
-    cell2.style = trade[3] == "BUY"? "color: #0ecb81" : "color: #f6465d";
-    row.insertCell(3).innerHTML = trade[4]+' / '+trade[5];
-    row.insertCell(4).innerHTML = trade[6]+' / '+trade[7];
-    row.insertCell(5).innerHTML = trade[8];
+    let existingRow = document.getElementById(trade[0]);
+
+    if(existingRow)
+    {
+        //update
+        existingRow.cells[4].innerHTML = parseFloat(trade[6]).toFixed(4)+' / '+parseFloat(trade[7]).toFixed(4);
+        existingRow.cells[5].innerHTML = trade[8];
+    }
+    else
+    {
+        //append
+        const table = document.getElementById("tableHistory");
+
+        let row = table.insertRow(1);
+        row.className = "tableTradeRow";
+        row.id = trade[0];
+
+        row.insertCell(0).innerHTML = dateFormat(new Date(parseInt(trade[1])), "yyyy-mm-dd HH:MM:ss");
+        row.insertCell(1).innerHTML = trade[2];
+
+        let cell2 = row.insertCell(2);
+        cell2.innerHTML = trade[3];
+        cell2.className = trade[3] == "BUY"? "tdBuy" : "tdSell";
+
+        row.insertCell(3).innerHTML = parseFloat(trade[4]).toFixed(4)+' / '+parseFloat(trade[5]).toFixed(4);
+        row.insertCell(4).innerHTML = parseFloat(trade[6]).toFixed(4)+' / '+parseFloat(trade[7]).toFixed(4);
+        row.insertCell(5).innerHTML = trade[8];
+    }
 }
 
 function tradeHistoryLoad()
 {
     let tradeHistoryFileDir = dataDir+tradeHistoryFile;
 
-    // if(fileIOInterface.checkDirSync(tradeHistoryFileDir))
-    //     fileIOInterface.readCSVRecords(tradeHistoryFileDir, tradeHistoryLoadCallback);
+    if(fileIOInterface.checkDirSync(tradeHistoryFileDir))
+        fileIOInterface.readJSONSync(tradeHistoryFileDir, tradeHistoryLoadCallback);
 }
 
 function tradeHistoryLoadCallback(trades)
 {
-    // trades.forEach(function(trade) { tradeHistoryUI(trade); });
+    tradeHistory = trades;
+
+    for (const [key, trade] of Object.entries(tradeHistory))
+    {
+        let time = trade.transactTime? trade.transactTime : trade.time;
+        let loadRecord = [key, time, "Binance", trade.side, trade.price, trade.origQty, (trade.cummulativeQuoteQty/trade.executedQty), trade.executedQty, trade.status];
+        tradeHistoryUI(loadRecord);
+    }
 }
 
 function traderCheckProfit()
@@ -524,15 +564,6 @@ function traderCheckProfit()
         Math.abs(currentTime - BitMax_OrderBookLastUpdate) <= traderMaxLastUpdateValue)
     {
         traderTrade();
-        // let newRecord;
-
-        // if(maxProfit_direction === 'BinanceBuy_BitMaxSell')
-        //     newRecord = [lastUpdate, Binance_BNB_USDT_ask, Binance_BNB_USDT_askVol, BitMax_BNB_USDT_bid, BitMax_BNB_USDT_bidVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
-        // else
-        //     newRecord = [lastUpdate, Binance_BNB_USDT_bid, Binance_BNB_USDT_bidVol, BitMax_BNB_USDT_ask, BitMax_BNB_USDT_askVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
-
-        // priceRecorderAppendUI(newRecord);
-        // fileIOInterface.appendRecordSync(dataDir+priceRecordFile, newRecord);
     }
 }
 
@@ -554,15 +585,18 @@ async function traderTrade()
     let binanceSide = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? "BUY" : "SELL";
     let bitmaxSide = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? "BUY" : "SELL";
 
-    //prices
-    let binancePrice = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? Binance_BNB_USDT_ask+maxProfit_withFee/2 : Binance_BNB_USDT_bid-maxProfit_withFee/2;
-    let bitmaxPrice = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? BitMax_BNB_USDT_ask+maxProfit_withFee/2 : BitMax_BNB_USDT_bid-maxProfit_withFee/2;
-    binancePrice = Math.round10(binancePrice, -4);
-    bitmaxPrice = Math.round10(bitmaxPrice, -4);
-
-    /* enfored safe trading, which raise buy price and lower sell price, each by half of the max profit
-       if both order are executed exactly at the safe trading price, the resulting gain should be about +/-0
+    /* employ safe trading, which raise buy price and lower sell price, each by half of the (max profit * buffer%)
+       if both order are executed exactly at the safe trading price with 50% buffer, the resulting gain would be about +/-0
        this could allow the orders to be fulfilled even if the best prices have shifted a little bit against us */
+
+    const traderSafeTradeBuffer = document.getElementById("traderSafeTradeBuffer");
+    let safeTradeBuffer = maxProfit_withFee * (parseFloat(traderSafeTradeBuffer.value)/100.0) /2.0;
+
+    //prices
+    let binancePrice = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? Binance_BNB_USDT_ask+safeTradeBuffer : Binance_BNB_USDT_bid-safeTradeBuffer;
+    let bitmaxPrice = maxProfit_direction == 'BinanceSell_BitMaxBuy' ? BitMax_BNB_USDT_ask+safeTradeBuffer : BitMax_BNB_USDT_bid-safeTradeBuffer;
+    binancePrice = Math.round10(binancePrice, -4);  //BNB Min Price Movement = 0.0001 USDT
+    bitmaxPrice = Math.round10(bitmaxPrice, -4);
 
     //quantities
     let binanceAffordable = maxProfit_direction == 'BinanceBuy_BitMaxSell' ? ac_Binance_USDT/binancePrice : ac_Binance_BNB;
@@ -655,7 +689,7 @@ async function traderTrade()
 
         // if time > sth, show possible failure, add it to record and ask for intervention
 
-        await delay(100);
+        await delay(1000);
     }
 
 
@@ -673,7 +707,7 @@ function binancePostOrderCB(resBody)
         binancePostedOrderId = resBody.clientOrderId;
         tradeHistory[binancePostedOrderId] = resBody;
 
-        let newRecord = [binancePostedOrderId, resBody.transactTime, "Binance", resBody.side, resBody.price, resBody.origQty, (resBody.cummulativeQuoteQty/resBody.executedQty).toFixed(4), resBody.executedQty, resBody.status];
+        let newRecord = [binancePostedOrderId, resBody.transactTime, "Binance", resBody.side, resBody.price, resBody.origQty, resBody.cummulativeQuoteQty/resBody.executedQty, resBody.executedQty, resBody.status];
         tradeHistoryUI(newRecord);
     }
     else
@@ -701,7 +735,7 @@ function bitmaxPostOrderCB(resBody)
         console.error(resBody);
     }
 
-    binancePostOrderHandled = true;
+    bitmaxPostOrderHandled = true;
 }
 
 function binanceGetOrderCB(resBody)
@@ -711,14 +745,65 @@ function binanceGetOrderCB(resBody)
 
     if(resBody && !resBody.code)
     {
+        orderId = resBody.clientOrderId;
+        tradeHistory[orderId] = resBody;
 
-        tradeHistory[binancePostedOrderId] = resBody;
+        let updateRecord = [orderId, resBody.time, "Binance", resBody.side, resBody.price, resBody.origQty, resBody.cummulativeQuoteQty/resBody.executedQty, resBody.executedQty, resBody.status];
+        tradeHistoryUI(updateRecord);
+
+        if(orderId == binancePostedOrderId)
+        {
+            binancePostOrderFilled = (resBody.status == "FILLED");
+        }
     }
     else
     {
         console.error("Biance get order failed");
         console.error(resBody);
     }
+}
 
-    binancePostOrderHandled = true;
+
+
+
+
+
+
+
+
+
+async function testTrade()
+{
+    //Binance
+    let parmsBinance = {
+        symbol: "BNBUSDT",
+        side: "SELL",
+        type: "LIMIT",
+        timeInForce: "GTC", //GTC (Good-Til-Canceled) orders are effective until they are executed or canceled.
+        quantity: 0.1,
+        price: 400,
+        // newClientOrderId: "ATM_generated_order_1"
+    };
+    binanceInterface.postOrder(parmsBinance, binancePostOrderCB);
+
+    //waiting for server responses
+    while(!binancePostOrderHandled)
+    {
+        // if time > sth, show possible failure, add it to record and ask for intervention
+
+        await delay(100);
+    }
+
+    await delay(1000);
+
+    // check Binance order
+    let parms = {
+        symbol: "BNBUSDT",
+        origClientOrderId: binancePostedOrderId
+    };
+    binanceInterface.getOrder(parms, binanceGetOrderCB);
+
+
+
+
 }
