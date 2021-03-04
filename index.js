@@ -29,14 +29,23 @@ walletLastUpdate["FTX"] = 0;
 
 
 /* ------------------ BNB/USDT Market ------------------ */
-let exchangeA_BNB_USDT_close, exchangeA_BNB_USDT_bid, exchangeA_BNB_USDT_ask, exchangeA_BNB_USDT_bidVol, exchangeA_BNB_USDT_askVol;
-let exchangeB_BNB_USDT_close, exchangeB_BNB_USDT_bid, exchangeB_BNB_USDT_ask, exchangeB_BNB_USDT_bidVol, exchangeB_BNB_USDT_askVol;
+let BNB_USDT_close = {};
+let BNB_USDT_bid = {}, BNB_USDT_bidVol = {};
+let BNB_USDT_ask = {}, BNB_USDT_askVol = {};
 
 let ABuy_BSell, ABuy_BSell_withFee;
 let ASell_BBuy, ASell_BBuy_withFee;
 let maxProfit, maxProfit_withFee, maxProfit_Vol, maxProfit_direction;
 
-let Binance_PriceLastUpdate = 0, Binance_OrderBookLastUpdate = 0, BitMax_OrderBookLastUpdate = 0;  //timestamp
+let closeLastUpdate = {};  //timestamp
+closeLastUpdate["Binance"] = 0;
+// closeLastUpdate["BitMax"] = 0;
+closeLastUpdate["FTX"] = 0;
+
+let orderBookLastUpdate = {};  //timestamp
+orderBookLastUpdate["Binance"] = 0;
+orderBookLastUpdate["BitMax"] = 0;
+orderBookLastUpdate["FTX"] = 0;
 
 
 /* ------------------ Profitable Price Records ------------------ */
@@ -247,7 +256,7 @@ function updateAc(exchange)
     const ac_exchangeA_USDT = document.getElementById("ac_exchangeA_USDT");
     const ac_exchangeB_BNB = document.getElementById("ac_exchangeB_BNB");
     const ac_exchangeB_USDT = document.getElementById("ac_exchangeB_USDT");
-    
+
     if(exchange==exchangeA)
     {
         ac_exchangeA_BNB.innerHTML = ac_BNB[exchange];
@@ -259,6 +268,7 @@ function updateAc(exchange)
         ac_exchangeB_USDT.innerHTML = ac_USDT[exchange];
     }
 }
+//recalculation
 function recalAcSum()
 {
     if((ac_BNB[exchangeA]||ac_BNB[exchangeA]==0) && (ac_BNB[exchangeB]||ac_BNB[exchangeB]==0))
@@ -287,49 +297,58 @@ async function asyncMarketFetcher() {
     {
         //calculate time since last update
         let currentTime = Date.now();
-        let Binance_PriceLastUpdatePassed = currentTime - Binance_PriceLastUpdate;
-        let Binance_OrderBookLastUpdatePassed = currentTime - Binance_OrderBookLastUpdate;
-        let BitMax_OrderBookLastUpdatePassed = currentTime - BitMax_OrderBookLastUpdate;
+        let Binance_PriceLastUpdatePassed = currentTime - closeLastUpdate["Binance"];
+        let Binance_OrderBookLastUpdatePassed = currentTime - orderBookLastUpdate["Binance"];
+        let BitMax_OrderBookLastUpdatePassed = currentTime - orderBookLastUpdate["BitMax"];
 
         //Binance
-        if(binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 1000)   //the price is irrelevant to decision making, need not to be frequently updately as to save request allowance
+        if(exchangeA=="Binance" || exchangeB=="Binance")
         {
-            binanceGetPriceRespondHandled = false;
-            
-            const parms = {
-                symbol: "BNBUSDT"
-            };
-            binanceInterface.getPrice(parms, binanceGetPriceCB);
-        }
-        if(binanceGetOrderBookRespondHandled)
-        {
-            binanceGetOrderBookRespondHandled = false;
-            
-            const parms = {
-                symbol: "BNBUSDT"
-            };
-            binanceInterface.getOrderBook(parms, binanceGetOrderBookCB);
+            if(binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 1000)   //the price is irrelevant to decision making, need not to be frequently updately as to save request allowance
+            {
+                binanceGetPriceRespondHandled = false;
+                
+                const parms = {
+                    symbol: "BNBUSDT"
+                };
+                binanceInterface.getPrice(parms, binanceGetPriceCB);
+            }
+            if(binanceGetOrderBookRespondHandled)
+            {
+                binanceGetOrderBookRespondHandled = false;
+                
+                const parms = {
+                    symbol: "BNBUSDT"
+                };
+                binanceInterface.getOrderBook(parms, binanceGetOrderBookCB);
+            }
+
+            //resume from failed respond waiting
+            if(!binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 2000) binanceGetPriceRespondHandled = true;
+            if(!binanceGetOrderBookRespondHandled && Binance_OrderBookLastUpdatePassed > 1000) binanceGetOrderBookRespondHandled = true;
         }
 
         //Bitmax
-        if(bitmaxGetTickerRespondHandled)
+        if(exchangeA=="BitMax" || exchangeB=="BitMax")
         {
-            bitmaxGetTickerRespondHandled = false;
+            if(bitmaxGetTickerRespondHandled)
+            {
+                bitmaxGetTickerRespondHandled = false;
 
-            const parms = {
-                symbol: "BNB/USDT"
-            };
-            bitmaxInterface.getTicker(parms, bitmaxGetTickerCB);
+                const parms = {
+                    symbol: "BNB/USDT"
+                };
+                bitmaxInterface.getTicker(parms, bitmaxGetTickerCB);
+            }
+            
+            //resume from failed respond waiting
+            if(!bitmaxGetTickerRespondHandled && BitMax_OrderBookLastUpdatePassed > 1000) bitmaxGetTickerRespondHandled = true;
         }
         
         //show time
         document.getElementById("Binance_OrderBookLastUpdatePassed").innerHTML = Binance_OrderBookLastUpdatePassed + " ms";
         document.getElementById("BitMax_OrderBookLastUpdatePassed").innerHTML = BitMax_OrderBookLastUpdatePassed + " ms";
 
-        //resume from failed respond waiting
-        if(!binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 2000) binanceGetPriceRespondHandled = true;
-        if(!binanceGetOrderBookRespondHandled && Binance_OrderBookLastUpdatePassed > 1000) binanceGetOrderBookRespondHandled = true;
-        if(!bitmaxGetTickerRespondHandled && BitMax_OrderBookLastUpdatePassed > 1000) bitmaxGetTickerRespondHandled = true;
 
         await delay(100);
     }
@@ -344,11 +363,11 @@ function binanceGetPriceCB(resBody)
         return;
     }
 
-    Binance_PriceLastUpdate = Date.now();
+    closeLastUpdate["Binance"] = Date.now();
 
-    exchangeA_BNB_USDT_close = parseFloat(resBody.price);
+    BNB_USDT_close["Binance"] = parseFloat(resBody.price);
     
-    document.getElementById("exchangeA_BNB_USDT_close").innerHTML = exchangeA_BNB_USDT_close.toFixed(4);
+    updateClose("Binance");
 
     recalCloseDiff();
 
@@ -362,17 +381,16 @@ function binanceGetOrderBookCB(resBody)
         return;
     }
 
-    Binance_OrderBookLastUpdate = Date.now();
+    orderBookLastUpdate["Binance"] = Date.now();
 
-    exchangeA_BNB_USDT_bid = parseFloat(resBody.bidPrice);
-    exchangeA_BNB_USDT_ask = parseFloat(resBody.askPrice);
-    exchangeA_BNB_USDT_bidVol = parseFloat(resBody.bidQty);
-    exchangeA_BNB_USDT_askVol = parseFloat(resBody.askQty);
+    BNB_USDT_bid["Binance"] = parseFloat(resBody.bidPrice);
+    BNB_USDT_ask["Binance"] = parseFloat(resBody.askPrice);
+    BNB_USDT_bidVol["Binance"] = parseFloat(resBody.bidQty);
+    BNB_USDT_askVol["Binance"] = parseFloat(resBody.askQty);
 
-    document.getElementById("exchangeA_BNB_USDT_bid").innerHTML = exchangeA_BNB_USDT_bid.toFixed(4)+' / '+exchangeA_BNB_USDT_bidVol.toFixed(2);
-    document.getElementById("exchangeA_BNB_USDT_ask").innerHTML = exchangeA_BNB_USDT_ask.toFixed(4)+' / '+exchangeA_BNB_USDT_askVol.toFixed(2);
+    updateOrderBook("Binance");
 
-    recalMaxProfit(Binance_OrderBookLastUpdate);
+    recalMaxProfit(orderBookLastUpdate["Binance"]);
 
     binanceGetOrderBookRespondHandled = true;
 }
@@ -385,55 +403,88 @@ function bitmaxGetTickerCB(resBody)
         return;
     }
 
-    BitMax_OrderBookLastUpdate = Date.now();
+    orderBookLastUpdate["BitMax"] = Date.now();
 
-    exchangeB_BNB_USDT_close = parseFloat(resBody.data.close);
-    exchangeB_BNB_USDT_bid = parseFloat(resBody.data.bid[0]);
-    exchangeB_BNB_USDT_ask = parseFloat(resBody.data.ask[0]);
-    exchangeB_BNB_USDT_bidVol = parseFloat(resBody.data.bid[1]);
-    exchangeB_BNB_USDT_askVol = parseFloat(resBody.data.ask[1]);
+    BNB_USDT_close["BitMax"] = parseFloat(resBody.data.close);
+    BNB_USDT_bid["BitMax"] = parseFloat(resBody.data.bid[0]);
+    BNB_USDT_ask["BitMax"] = parseFloat(resBody.data.ask[0]);
+    BNB_USDT_bidVol["BitMax"] = parseFloat(resBody.data.bid[1]);
+    BNB_USDT_askVol["BitMax"] = parseFloat(resBody.data.ask[1]);
 
-    document.getElementById("exchangeB_BNB_USDT_close").innerHTML = exchangeB_BNB_USDT_close.toFixed(4);
-    document.getElementById("exchangeB_BNB_USDT_bid").innerHTML = exchangeB_BNB_USDT_bid.toFixed(4)+' / '+exchangeB_BNB_USDT_bidVol.toFixed(2);
-    document.getElementById("exchangeB_BNB_USDT_ask").innerHTML = exchangeB_BNB_USDT_ask.toFixed(4)+' / '+exchangeB_BNB_USDT_askVol.toFixed(2);
+    updateClose("BitMax");
+    updateOrderBook("BitMax");
 
     recalCloseDiff();
-    recalMaxProfit(BitMax_OrderBookLastUpdate);
+    recalMaxProfit(orderBookLastUpdate["BitMax"]);
 
     bitmaxGetTickerRespondHandled = true;
+}
+
+//UI
+function updateClose(exchange)
+{
+    const exchangeA_BNB_USDT_close = document.getElementById("exchangeA_BNB_USDT_close");
+    const exchangeB_BNB_USDT_close = document.getElementById("exchangeB_BNB_USDT_close");
+
+    if(exchange==exchangeA)
+    {
+        exchangeA_BNB_USDT_close.innerHTML = BNB_USDT_close[exchange].toFixed(4);
+    }
+    if(exchange==exchangeB)
+    {
+        exchangeB_BNB_USDT_close.innerHTML = BNB_USDT_close[exchange].toFixed(4);
+    }
+}
+function updateOrderBook(exchange)
+{
+    const exchangeA_BNB_USDT_bid = document.getElementById("exchangeA_BNB_USDT_bid");
+    const exchangeA_BNB_USDT_ask = document.getElementById("exchangeA_BNB_USDT_ask");
+    const exchangeB_BNB_USDT_bid = document.getElementById("exchangeB_BNB_USDT_bid");
+    const exchangeB_BNB_USDT_ask = document.getElementById("exchangeB_BNB_USDT_ask");
+
+    if(exchange==exchangeA)
+    {
+        exchangeA_BNB_USDT_bid.innerHTML = BNB_USDT_bid[exchange].toFixed(4)+' / '+BNB_USDT_bidVol[exchange].toFixed(2);
+        exchangeA_BNB_USDT_ask.innerHTML = BNB_USDT_ask[exchange].toFixed(4)+' / '+BNB_USDT_askVol[exchange].toFixed(2);
+    }
+    if(exchange==exchangeB)
+    {
+        exchangeB_BNB_USDT_bid.innerHTML = BNB_USDT_bid[exchange].toFixed(4)+' / '+BNB_USDT_bidVol[exchange].toFixed(2);
+        exchangeB_BNB_USDT_ask.innerHTML = BNB_USDT_ask[exchange].toFixed(4)+' / '+BNB_USDT_askVol[exchange].toFixed(2);
+    }
 }
 
 //recalculation
 function recalCloseDiff()
 {
-    if(exchangeA_BNB_USDT_close && exchangeB_BNB_USDT_close)
+    if(BNB_USDT_close[exchangeA] && BNB_USDT_close[exchangeB])
     {
-        let diff = exchangeA_BNB_USDT_close - exchangeB_BNB_USDT_close;
+        let diff = BNB_USDT_close[exchangeA] - BNB_USDT_close[exchangeB];
         document.getElementById("diff_BNB_USDT_close").innerHTML = (diff>=0? '+': '') + diff.toFixed(4);
     }
 }
 function recalMaxProfit(lastUpdate)
 {
-    if(exchangeA_BNB_USDT_bid && exchangeA_BNB_USDT_ask && exchangeB_BNB_USDT_bid && exchangeB_BNB_USDT_ask)
+    if(BNB_USDT_bid[exchangeA] && BNB_USDT_ask[exchangeA] && BNB_USDT_bid[exchangeB] && BNB_USDT_ask[exchangeB])
     {
-        ABuy_BSell = exchangeB_BNB_USDT_bid - exchangeA_BNB_USDT_ask;
-        ABuy_BSell_withFee = exchangeB_BNB_USDT_bid * (1.0-BitMax_fee) - exchangeA_BNB_USDT_ask * (1.0+Binance_fee);
+        ABuy_BSell = BNB_USDT_bid[exchangeB] - BNB_USDT_ask[exchangeA];
+        ABuy_BSell_withFee = BNB_USDT_bid[exchangeB] * (1.0-BitMax_fee) - BNB_USDT_ask[exchangeA] * (1.0+Binance_fee);
 
-        ASell_BBuy = exchangeA_BNB_USDT_bid - exchangeB_BNB_USDT_ask;
-        ASell_BBuy_withFee = exchangeA_BNB_USDT_bid * (1.0-Binance_fee) - exchangeB_BNB_USDT_ask * (1.0+BitMax_fee);
+        ASell_BBuy = BNB_USDT_bid[exchangeA] - BNB_USDT_ask[exchangeB];
+        ASell_BBuy_withFee = BNB_USDT_bid[exchangeA] * (1.0-Binance_fee) - BNB_USDT_ask[exchangeB] * (1.0+BitMax_fee);
 
         if(ABuy_BSell_withFee > ASell_BBuy_withFee)
         {
             maxProfit = ABuy_BSell;
             maxProfit_withFee = ABuy_BSell_withFee;
-            maxProfit_Vol = Math.min(exchangeB_BNB_USDT_bidVol, exchangeA_BNB_USDT_askVol);
+            maxProfit_Vol = Math.min(BNB_USDT_bidVol[exchangeB], BNB_USDT_askVol[exchangeA]);
             maxProfit_direction = 'ABuy_BSell';
         }
         else
         {
             maxProfit = ASell_BBuy;
             maxProfit_withFee = ASell_BBuy_withFee;
-            maxProfit_Vol = Math.min(exchangeA_BNB_USDT_bidVol, exchangeB_BNB_USDT_askVol);
+            maxProfit_Vol = Math.min(BNB_USDT_bidVol[exchangeA], BNB_USDT_askVol[exchangeB]);
             maxProfit_direction = 'ASell_BBuy';
         }
 
@@ -504,15 +555,15 @@ function priceRecorderCheckProfit(lastUpdate)
 
     if(maxProfit_withFee && maxProfit_direction && maxProfit_Vol &&
         maxProfit_withFee >= priceRecorderCriticalMaxProfitWithFeeValue &&
-        Math.abs(currentTime - Binance_OrderBookLastUpdate) <= priceRecorderMaxLastUpdateValue && 
-        Math.abs(currentTime - BitMax_OrderBookLastUpdate) <= priceRecorderMaxLastUpdateValue)
+        Math.abs(currentTime - orderBookLastUpdate[exchangeA]) <= priceRecorderMaxLastUpdateValue && 
+        Math.abs(currentTime - orderBookLastUpdate[exchangeB]) <= priceRecorderMaxLastUpdateValue)
     {
         let newRecord;
 
         if(maxProfit_direction === 'ABuy_BSell')
-            newRecord = [lastUpdate, exchangeA_BNB_USDT_ask, exchangeA_BNB_USDT_askVol, exchangeB_BNB_USDT_bid, exchangeB_BNB_USDT_bidVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
+            newRecord = [lastUpdate, BNB_USDT_ask[exchangeA], BNB_USDT_askVol[exchangeA], BNB_USDT_bid[exchangeB], BNB_USDT_bidVol[exchangeB], maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
         else
-            newRecord = [lastUpdate, exchangeA_BNB_USDT_bid, exchangeA_BNB_USDT_bidVol, exchangeB_BNB_USDT_ask, exchangeB_BNB_USDT_askVol, maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
+            newRecord = [lastUpdate, BNB_USDT_bid[exchangeA], BNB_USDT_bidVol[exchangeA], BNB_USDT_ask[exchangeB], BNB_USDT_askVol[exchangeB], maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
 
         priceRecorderAppendUI(newRecord);
         fileIOInterface.appendRecordSync(dataDir+priceRecordFile, newRecord);
@@ -613,8 +664,8 @@ function traderCheckProfit()
     if(maxProfit_withFee && maxProfit_direction && maxProfit_Vol &&     //best deal data ready
         (ac_BNB[exchangeA] + ac_BNB[exchangeB]) && (ac_USDT[exchangeA] + ac_USDT[exchangeB]) &&     //account balance consists of both coins
         maxProfit_withFee >= traderCriticalMaxProfitWithFeeValue &&     //deal is good enough
-        Math.abs(currentTime - Binance_OrderBookLastUpdate) <= traderMaxLastUpdateValue &&      //data is fresh
-        Math.abs(currentTime - BitMax_OrderBookLastUpdate) <= traderMaxLastUpdateValue)
+        Math.abs(currentTime - orderBookLastUpdate[exchangeA]) <= traderMaxLastUpdateValue &&      //data is fresh
+        Math.abs(currentTime - orderBookLastUpdate[exchangeB]) <= traderMaxLastUpdateValue)
     {
         traderTrade();
     }
@@ -646,8 +697,8 @@ async function traderTrade()
     let safeTradeBuffer = maxProfit_withFee * (parseFloat(traderSafeTradeBuffer.value)/100.0) /2.0;
 
     //prices
-    let binancePrice = maxProfit_direction == 'ABuy_BSell' ? exchangeA_BNB_USDT_ask+safeTradeBuffer : exchangeA_BNB_USDT_bid-safeTradeBuffer;
-    let bitmaxPrice = maxProfit_direction == 'ASell_BBuy' ? exchangeB_BNB_USDT_ask+safeTradeBuffer : exchangeB_BNB_USDT_bid-safeTradeBuffer;
+    let binancePrice = maxProfit_direction == 'ABuy_BSell' ? BNB_USDT_ask[exchangeA]+safeTradeBuffer : BNB_USDT_bid[exchangeA]-safeTradeBuffer;
+    let bitmaxPrice = maxProfit_direction == 'ASell_BBuy' ? BNB_USDT_ask[exchangeB]+safeTradeBuffer : BNB_USDT_bid[exchangeB]-safeTradeBuffer;
     binancePrice = Math.round10(binancePrice, -4);  //Binance BNB: Min Price Movement = 0.0001 USDT
     bitmaxPrice = Math.round10(bitmaxPrice, -4);
 
