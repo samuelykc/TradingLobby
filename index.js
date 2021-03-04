@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron');
 const binanceInterface = require('./js/binanceInterface');
 const bitmaxInterface = require('./js/bitmaxInterface');
+const ftxInterface = require('./js/ftxInterface');
 const fileIOInterface = require('./js/fileIOInterface');
 const mathExtend = require('./js/mathExtend');
 const dateFormat = require('dateformat');
@@ -15,6 +16,10 @@ const configFile = "config.txt";
 
 let Binance_fee = 0.001;
 let BitMax_fee = 0.001;
+let fee = {};
+fee["Binance"] = 0.001;
+fee["BitMax"] = 0.001;
+fee["FTX"] = 0.0007;
 
 
 
@@ -49,7 +54,7 @@ orderBookLastUpdate["FTX"] = 0;
 
 
 /* ------------------ Profitable Price Records ------------------ */
-const priceRecordFile = "priceRecord.csv";
+const priceRecordFile = "_priceRecord.csv";  //exchangeA + exchangeB + "_priceRecord.csv"
 
 
 /* ------------------ Trade History ------------------ */
@@ -74,6 +79,7 @@ function setAPIKeysCB(json)
 {
     binanceInterface.setAPIKeys(json.binanceAPIPublicKey, json.binanceAPISecretKey);
     bitmaxInterface.setAPIKeys(json.bitmaxAPIPublicKey, json.bitmaxAPISecretKey);
+    ftxInterface.setAPIKeys(json.ftxAPIPublicKey, json.ftxAPISecretKey);
 }
 
 
@@ -161,6 +167,9 @@ async function setExchangeAndRestart()
     //set
     setExchange();
 
+    //clear data
+    priceRecorderClearUI();
+
     //load data
     priceRecorderLoad();
     tradeHistoryLoad();
@@ -178,22 +187,48 @@ async function setExchangeAndRestart()
 /* ------------------ Account Balance ------------------ */
 let binanceGetWalletAllCoinRespondHandled = true;
 let bitmaxGetWalletAllCoinRespondHandled = true;
+let ftxGetWalletAllCoinRespondHandled = true;
 
 async function asyncAccountFetcher() {
     while(operating)
     {
-        if(binanceGetWalletAllCoinRespondHandled)
+        if(exchangeA=="Binance" || exchangeB=="Binance")
         {
-            binanceGetWalletAllCoinRespondHandled = false;
+            if(binanceGetWalletAllCoinRespondHandled)
+            {
+                binanceGetWalletAllCoinRespondHandled = false;
 
-            binanceInterface.getWalletAllCoin(binanceGetWalletAllCoinCB);
+                binanceInterface.getWalletAllCoin(binanceGetWalletAllCoinCB);
+            }
+            
+            //resume from failed respond waiting
+            if(!binanceGetWalletAllCoinRespondHandled && walletLastUpdate["Binance"] > 1000) binanceGetWalletAllCoinRespondHandled = true;
         }
 
-        if(bitmaxGetWalletAllCoinRespondHandled)
+        if(exchangeA=="BitMax" || exchangeB=="BitMax")
         {
-            bitmaxGetWalletAllCoinRespondHandled = false;
+            if(bitmaxGetWalletAllCoinRespondHandled)
+            {
+                bitmaxGetWalletAllCoinRespondHandled = false;
 
-            bitmaxInterface.getWalletAllCoin(bitmaxGetWalletAllCoinCB);
+                bitmaxInterface.getWalletAllCoin(bitmaxGetWalletAllCoinCB);
+            }
+
+            //resume from failed respond waiting
+            if(!bitmaxGetWalletAllCoinRespondHandled && walletLastUpdate["BitMax"] > 1000) bitmaxGetWalletAllCoinRespondHandled = true;
+        }
+
+        if(exchangeA=="FTX" || exchangeB=="FTX")
+        {
+            if(ftxGetWalletAllCoinRespondHandled)
+            {
+                ftxGetWalletAllCoinRespondHandled = false;
+
+                ftxInterface.getWalletAllCoin(ftxGetWalletAllCoinCB);
+            }
+
+            //resume from failed respond waiting
+            if(!ftxGetWalletAllCoinRespondHandled && walletLastUpdate["FTX"] > 1000) ftxGetWalletAllCoinRespondHandled = true;
         }
 
         //calculate time since last update
@@ -205,9 +240,6 @@ async function asyncAccountFetcher() {
         document.getElementById("exchangeA_WalletLastUpdatePassed").innerHTML = exchangeA_WalletLastUpdatePassed + " ms";
         document.getElementById("exchangeB_WalletLastUpdatePassed").innerHTML = exchangeB_WalletLastUpdatePassed + " ms";
 
-        //resume from failed respond waiting
-        if(!binanceGetWalletAllCoinRespondHandled && exchangeA_WalletLastUpdatePassed > 1000) binanceGetWalletAllCoinRespondHandled = true;
-        if(!bitmaxGetWalletAllCoinRespondHandled && exchangeB_WalletLastUpdatePassed > 1000) bitmaxGetWalletAllCoinRespondHandled = true;
         
         await delay(1000);
     }
@@ -247,6 +279,25 @@ function bitmaxGetWalletAllCoinCB(resBody)
     }
 
     bitmaxGetWalletAllCoinRespondHandled = true;
+}
+
+function ftxGetWalletAllCoinCB(resBody)
+{
+    if(resBody && resBody.success==true)
+    {
+        walletLastUpdate["FTX"] = Date.now();
+
+        let BNB_record = resBody.result.find(e => e.coin === "BNB");
+        let USDT_record = resBody.result.find(e => e.coin === "USDT");
+
+        ac_BNB["FTX"] = BNB_record? parseFloat(BNB_record.free) : 0;
+        ac_USDT["FTX"] = USDT_record? parseFloat(USDT_record.free): 0;
+
+        updateAc("FTX");
+        recalAcSum();
+    }
+
+    ftxGetWalletAllCoinRespondHandled = true;
 }
 
 //UI
@@ -292,14 +343,23 @@ let binanceGetOrderBookRespondHandled = true;
 
 let bitmaxGetTickerRespondHandled = true;
 
+let ftxGetPriceRespondHandled = true;
+let ftxGetOrderBookRespondHandled = true;
+
 async function asyncMarketFetcher() {
     while(operating)
     {
         //calculate time since last update
         let currentTime = Date.now();
+
         let Binance_PriceLastUpdatePassed = currentTime - closeLastUpdate["Binance"];
-        let Binance_OrderBookLastUpdatePassed = currentTime - orderBookLastUpdate["Binance"];
-        let BitMax_OrderBookLastUpdatePassed = currentTime - orderBookLastUpdate["BitMax"];
+        let FTX_PriceLastUpdatePassed = currentTime - closeLastUpdate["FTX"];
+
+        let orderBookLastUpdatePassed = {};
+        orderBookLastUpdatePassed["Binance"] = currentTime - orderBookLastUpdate["Binance"];
+        orderBookLastUpdatePassed["BitMax"] = currentTime - orderBookLastUpdate["BitMax"];
+        orderBookLastUpdatePassed["FTX"] = currentTime - orderBookLastUpdate["FTX"];
+
 
         //Binance
         if(exchangeA=="Binance" || exchangeB=="Binance")
@@ -325,7 +385,7 @@ async function asyncMarketFetcher() {
 
             //resume from failed respond waiting
             if(!binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 2000) binanceGetPriceRespondHandled = true;
-            if(!binanceGetOrderBookRespondHandled && Binance_OrderBookLastUpdatePassed > 1000) binanceGetOrderBookRespondHandled = true;
+            if(!binanceGetOrderBookRespondHandled && orderBookLastUpdatePassed["Binance"] > 1000) binanceGetOrderBookRespondHandled = true;
         }
 
         //Bitmax
@@ -342,12 +402,35 @@ async function asyncMarketFetcher() {
             }
             
             //resume from failed respond waiting
-            if(!bitmaxGetTickerRespondHandled && BitMax_OrderBookLastUpdatePassed > 1000) bitmaxGetTickerRespondHandled = true;
+            if(!bitmaxGetTickerRespondHandled && orderBookLastUpdatePassed["BitMax"] > 1000) bitmaxGetTickerRespondHandled = true;
+        }
+
+        //FTX
+        if(exchangeA=="FTX" || exchangeB=="FTX")
+        {
+            if(ftxGetPriceRespondHandled && FTX_PriceLastUpdatePassed > 1000)   //the price is irrelevant to decision making, need not to be frequently updately as to save request allowance
+            {
+                ftxGetPriceRespondHandled = false;
+                ftxInterface.getPrice("BNB/USDT", ftxGetPriceCB);
+            }
+            if(ftxGetOrderBookRespondHandled)
+            {
+                ftxGetOrderBookRespondHandled = false;
+                
+                const parms = {
+                    depth: 1
+                };
+                ftxInterface.getOrderBook("BNB/USDT", parms, ftxGetOrderBookCB);
+            }
+
+            //resume from failed respond waiting
+            if(!ftxGetPriceRespondHandled && FTX_PriceLastUpdatePassed > 2000) ftxGetPriceRespondHandled = true;
+            if(!ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 1000) ftxGetOrderBookRespondHandled = true;
         }
         
         //show time
-        document.getElementById("Binance_OrderBookLastUpdatePassed").innerHTML = Binance_OrderBookLastUpdatePassed + " ms";
-        document.getElementById("BitMax_OrderBookLastUpdatePassed").innerHTML = BitMax_OrderBookLastUpdatePassed + " ms";
+        document.getElementById("exchangeA_OrderBookLastUpdatePassed").innerHTML = orderBookLastUpdatePassed[exchangeA] + " ms";
+        document.getElementById("exchangeB_OrderBookLastUpdatePassed").innerHTML = orderBookLastUpdatePassed[exchangeB] + " ms";
 
 
         await delay(100);
@@ -420,6 +503,46 @@ function bitmaxGetTickerCB(resBody)
     bitmaxGetTickerRespondHandled = true;
 }
 
+function ftxGetPriceCB(resBody)
+{
+    if(!resBody || resBody.success==false)
+    {
+        ftxGetPriceRespondHandled = true;
+        return;
+    }
+
+    closeLastUpdate["FTX"] = Date.now();
+
+    BNB_USDT_close["FTX"] = parseFloat(resBody.result.price);
+    
+    updateClose("FTX");
+
+    recalCloseDiff();
+
+    ftxGetPriceRespondHandled = true;
+}
+function ftxGetOrderBookCB(resBody)
+{
+    if(!resBody || resBody.success==false)
+    {
+        ftxGetOrderBookRespondHandled = true;
+        return;
+    }
+
+    orderBookLastUpdate["FTX"] = Date.now();
+
+    BNB_USDT_bid["FTX"] = parseFloat(resBody.result.bids[0][0]);
+    BNB_USDT_ask["FTX"] = parseFloat(resBody.result.asks[0][0]);
+    BNB_USDT_bidVol["FTX"] = parseFloat(resBody.result.bids[0][1]);
+    BNB_USDT_askVol["FTX"] = parseFloat(resBody.result.asks[0][1]);
+
+    updateOrderBook("FTX");
+
+    recalMaxProfit(orderBookLastUpdate["FTX"]);
+
+    ftxGetOrderBookRespondHandled = true;
+}
+
 //UI
 function updateClose(exchange)
 {
@@ -468,10 +591,10 @@ function recalMaxProfit(lastUpdate)
     if(BNB_USDT_bid[exchangeA] && BNB_USDT_ask[exchangeA] && BNB_USDT_bid[exchangeB] && BNB_USDT_ask[exchangeB])
     {
         ABuy_BSell = BNB_USDT_bid[exchangeB] - BNB_USDT_ask[exchangeA];
-        ABuy_BSell_withFee = BNB_USDT_bid[exchangeB] * (1.0-BitMax_fee) - BNB_USDT_ask[exchangeA] * (1.0+Binance_fee);
+        ABuy_BSell_withFee = BNB_USDT_bid[exchangeB] * (1.0-fee[exchangeB]) - BNB_USDT_ask[exchangeA] * (1.0+fee[exchangeA]);
 
         ASell_BBuy = BNB_USDT_bid[exchangeA] - BNB_USDT_ask[exchangeB];
-        ASell_BBuy_withFee = BNB_USDT_bid[exchangeA] * (1.0-Binance_fee) - BNB_USDT_ask[exchangeB] * (1.0+BitMax_fee);
+        ASell_BBuy_withFee = BNB_USDT_bid[exchangeA] * (1.0-fee[exchangeA]) - BNB_USDT_ask[exchangeB] * (1.0+fee[exchangeB]);
 
         if(ABuy_BSell_withFee > ASell_BBuy_withFee)
         {
@@ -532,7 +655,7 @@ function priceRecorderAppendUI(record)  //append as the first row
 
 function priceRecorderLoad()
 {
-    let priceRecordFileDir = dataDir+priceRecordFile;
+    let priceRecordFileDir = dataDir+exchangeA+exchangeB+priceRecordFile;
 
     if(fileIOInterface.checkDirSync(priceRecordFileDir))
         fileIOInterface.readCSVRecords(priceRecordFileDir, priceRecorderLoadCallback);
@@ -566,7 +689,7 @@ function priceRecorderCheckProfit(lastUpdate)
             newRecord = [lastUpdate, BNB_USDT_bid[exchangeA], BNB_USDT_bidVol[exchangeA], BNB_USDT_ask[exchangeB], BNB_USDT_askVol[exchangeB], maxProfit_withFee, maxProfit_Vol, maxProfit_direction];
 
         priceRecorderAppendUI(newRecord);
-        fileIOInterface.appendRecordSync(dataDir+priceRecordFile, newRecord);
+        fileIOInterface.appendRecordSync(dataDir+exchangeA+exchangeB+priceRecordFile, newRecord);
     }
 }
 

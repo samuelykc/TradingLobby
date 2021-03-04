@@ -90,9 +90,9 @@
             <td class="tdAsk" id="exchangeB_BNB_USDT_ask">N/A</td>
           </tr>
           <tr>
-            <td class="tdLastUpdate" id="Binance_OrderBookLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeA_OrderBookLastUpdatePassed">N/A</td>
             <td></td>
-            <td class="tdLastUpdate" id="BitMax_OrderBookLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeB_OrderBookLastUpdatePassed">N/A</td>
           </tr>
         </table>
         <p class="tableDescription">
@@ -106,7 +106,7 @@
     <div class="card">
         <div class="input">
             <label for="traderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
-            <input type="number" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
+            <input type="number" step="0.001" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
         </div>
         <div class="input">
             <label for="traderMaxLastUpdate">Max last update(ms):</label>
@@ -143,7 +143,7 @@
     <div class="card">
         <div class="input">
             <label for="priceRecorderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
-            <input type="number" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
+            <input type="number" step="0.001" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
         </div>
         <div class="input">
             <label for="priceRecorderMaxLastUpdate">Max last update(ms):</label>
