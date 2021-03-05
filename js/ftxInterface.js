@@ -90,7 +90,8 @@ module.exports = {
     getWalletAllCoin(callback)
     {
         let timestamp = Date.now();
-        let signature = CryptoJS.HmacSHA256(timestamp+'GET'+'/api/wallet/balances', APISecretKey).toString();
+        let payload = timestamp+'GET'+'/api/wallet/balances';
+        let signature = CryptoJS.HmacSHA256(payload, APISecretKey).toString();
 
         let options = {
             'method': 'GET',
@@ -113,7 +114,7 @@ module.exports = {
     //     parms.timestamp = Date.now();
     //     parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
-    //     var options = {
+    //     let options = {
     //         'method': 'POST',
     //         'hostname': hostname,
     //         'path': '/api/v3/order/test?' + querystring.stringify(parms),
@@ -127,31 +128,37 @@ module.exports = {
     //     httpsRequest(options, callback);
     // },
 
-    // postOrder(parms, callback)
-    // {
-    //     parms.timestamp = Date.now();
-    //     parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
+    postOrder(parms, callback)
+    {
+        let timestamp = Date.now();
+        let payload = timestamp+'POST'+'/api/orders'+JSON.stringify(parms).replaceAll(',', ', ').replaceAll(':', ': ');
+        let signature = CryptoJS.HmacSHA256(payload, APISecretKey).toString();
 
-    //     var options = {
-    //         'method': 'POST',
-    //         'hostname': hostname,
-    //         'path': '/api/v3/order?' + querystring.stringify(parms),
-    //         'headers': {
-    //             'Content-Type': 'application/json',
-    //             'X-MBX-APIKEY': APIPublicKey
-    //         },
-    //         'maxRedirects': 20
-    //     };
+        // console.log(payload)
+        // console.log(signature)
 
-    //     httpsRequest(options, callback);
-    // },
+        let options = {
+            'method': 'POST',
+            'hostname': hostname,
+            'path': '/api/orders?' + querystring.stringify(parms),
+            'headers': {
+                'Content-Type': 'application/json',
+                'FTX-KEY': APIPublicKey,
+                'FTX-TS': timestamp,
+                'FTX-SIGN': signature
+            },
+            'maxRedirects': 20
+        };
+
+        httpsRequest(options, callback);
+    },
 
     // getOrder(parms, callback)
     // {
     //     parms.timestamp = Date.now();
     //     parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
-    //     var options = {
+    //     let options = {
     //         'method': 'GET',
     //         'hostname': hostname,
     //         'path': '/api/v3/order?' + querystring.stringify(parms),

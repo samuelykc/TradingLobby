@@ -117,7 +117,7 @@ module.exports = {
         parms.timestamp = Date.now();
         parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
-        var options = {
+        let options = {
             'method': 'POST',
             'hostname': hostname,
             'path': '/api/v3/order/test?' + querystring.stringify(parms),
@@ -136,7 +136,7 @@ module.exports = {
         parms.timestamp = Date.now();
         parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
-        var options = {
+        let options = {
             'method': 'POST',
             'hostname': hostname,
             'path': '/api/v3/order?' + querystring.stringify(parms),
@@ -155,7 +155,7 @@ module.exports = {
         parms.timestamp = Date.now();
         parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
-        var options = {
+        let options = {
             'method': 'GET',
             'hostname': hostname,
             'path': '/api/v3/order?' + querystring.stringify(parms),
