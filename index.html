@@ -117,6 +117,11 @@
             <input type="number" min="0" max="120" id="traderSafeTradeBuffer" name="traderSafeTradeBuffer" value="80">
         </div>
         <button class="waves-effect waves-light btn" id="toggleTraderBtn" onclick="toggleTrader()">Start trading</button>
+        <label>
+          <input type="checkbox" class="filled-in" id="performOneTrade" name="performOneTrade" />
+          <span>stop after 1 trade</span>
+        </label>
+
         <div class="board">
             <table id="tableHistory">
               <caption>Trade History</caption>

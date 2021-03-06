@@ -94,7 +94,7 @@ function setAPIKeysCB(json)
 
 
 
-//once the window is ready, loop the fetchers
+//once the window is ready
 window.onload = function()
 {
     initializeModalBox();
@@ -106,25 +106,9 @@ window.onload = function()
     priceRecorderLoad();
     tradeHistoryLoad();
 
-    //turn on asyncAccountFetcher() & asyncMarketFetcher()
+    //loop the fetchers asyncAccountFetcher() & asyncMarketFetcher()
     asyncAccountFetcher();
     asyncMarketFetcher();
-
-    //test code
-    // toggleTrader();
-    // traderTrade();
-
-    //test code
-    // let parms = {
-    //     symbol: "BNB/USDT",
-    //     side: "sell",
-    //     orderType: "limit",
-    //     orderQty: "0.1",
-    //     orderPrice: "300.0",
-    //     // timeInForce: "GTC"
-    //     // id: "ATM_generated_order_1"
-    // };
-    // bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
 };
 
 window.onbeforeunload = (e) => {
@@ -705,14 +689,26 @@ function priceRecorderCheckProfit(lastUpdate)
 /* ------------------ Trade History ------------------ */
 
 let traderActive = false;
-let performOneTrade = true; //stop after one successful trade
 function toggleTrader()
 {
     traderActive = !traderActive;
     traderTrading = false;
 
     const toggleTraderBtn = document.getElementById("toggleTraderBtn");
-    toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
+    if(traderActive)
+    {
+        toggleTraderBtn.innerHTML = "Stop trading";
+        toggleTraderBtn.classList.remove("waves-light");
+        toggleTraderBtn.classList.add("red");
+        toggleTraderBtn.classList.add("lighten-1");
+    }
+    else
+    {
+        toggleTraderBtn.innerHTML = "Start trading";
+        toggleTraderBtn.classList.add("waves-light");
+        toggleTraderBtn.classList.remove("red");
+        toggleTraderBtn.classList.remove("lighten-1");
+    }
 }
 
 function tradeHistoryUI(trade)  //append as the first row, or update row
@@ -980,7 +976,9 @@ async function traderTrade()
 
 
     traderTrading = false;
-    if(performOneTrade) traderActive = false;
+
+    const performOneTrade = document.getElementById("performOneTrade");
+    if(performOneTrade.checked) toggleTrader(); //stop after one successful trade
 }
 
 function binancePostOrderCB(resBody)
