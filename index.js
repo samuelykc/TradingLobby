@@ -705,14 +705,14 @@ function priceRecorderCheckProfit(lastUpdate)
 /* ------------------ Trade History ------------------ */
 
 let traderActive = false;
+let performOneTrade = true; //stop after one successful trade
 function toggleTrader()
 {
-    testTrade()
-    // traderActive = !traderActive;
-    // traderTrading = false;
+    traderActive = !traderActive;
+    traderTrading = false;
 
-    // const toggleTraderBtn = document.getElementById("toggleTraderBtn");
-    // toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
+    const toggleTraderBtn = document.getElementById("toggleTraderBtn");
+    toggleTraderBtn.innerHTML = traderActive? "Stop trading" : "Start trading";
 }
 
 function tradeHistoryUI(trade)  //append as the first row, or update row
@@ -767,9 +767,17 @@ function tradeHistoryLoadCallback(trades)
 
     for (const [key, trade] of Object.entries(tradeHistory))
     {
-        let time = trade.transactTime? trade.transactTime : trade.time;
-        let loadRecord = [key, time, "Binance", trade.side, trade.price, trade.origQty, (trade.cummulativeQuoteQty/trade.executedQty), trade.executedQty, trade.status];
-        tradeHistoryUI(loadRecord);
+        if(trade.transactTime || trade.time)    //Binance
+        {
+            let time = trade.transactTime? trade.transactTime : trade.time;
+            let loadRecord = [key, time, "Binance", trade.side, trade.price, trade.origQty, (trade.cummulativeQuoteQty/trade.executedQty), trade.executedQty, trade.status];
+            tradeHistoryUI(loadRecord);
+        }
+        else if(trade.createdAt)    //FTX
+        {
+            let loadRecord = [trade.clientId, Date.parse(trade.createdAt), "FTX", trade.side, trade.price, trade.size, trade.avgFillPrice, trade.size - trade.remainingSize, trade.status];
+            tradeHistoryUI(loadRecord);
+        }
     }
 }
 
@@ -802,10 +810,6 @@ function traderCheckProfit()
 }
 
 let traderTrading = false;
-// let binancePostOrderHandled = false, bitmaxPostOrderHandled = false;
-// let binancePostedOrderId = '', bitmaxPostedOrderId = '';
-// let binancePostOrderFilled = false, bitmaxPostOrderFilled = false;
-
 let postOrderHandled = {}, postedOrderId = {}, postOrderFilled = {};
 
 async function traderTrade()
@@ -814,9 +818,6 @@ async function traderTrade()
 
     if(traderTrading) return;
     traderTrading = true;
-    // binancePostOrderHandled = bitmaxPostOrderHandled = false;
-    // binancePostedOrderId = bitmaxPostedOrderId = '';
-    // binancePostOrderFilled = bitmaxPostOrderFilled = false;
 
     postOrderHandled[exchangeA] = postOrderHandled[exchangeB] = false;
     postedOrderId[exchangeA] = postedOrderId[exchangeB] = '';
@@ -825,8 +826,9 @@ async function traderTrade()
 
 
     //sides
-    let exchangeASide = maxProfit_direction == 'ABuy_BSell' ? "BUY" : "SELL";
-    let exchangeBSide = maxProfit_direction == 'ASell_BBuy' ? "BUY" : "SELL";
+    let side = {};
+    side[exchangeA] = maxProfit_direction == 'ABuy_BSell' ? "BUY" : "SELL";
+    side[exchangeB] = maxProfit_direction == 'ASell_BBuy' ? "BUY" : "SELL";
 
     /* employ safe trading, which raise buy price and lower sell price, each by half of the (max profit * buffer%)
        if both order are executed exactly at the safe trading price with 50% buffer, the resulting gain would be about +/-0
@@ -836,27 +838,35 @@ async function traderTrade()
     let safeTradeBuffer = maxProfit_withFee * (parseFloat(traderSafeTradeBuffer.value)/100.0) /2.0;
 
     //prices
-    let exchangeAPrice = maxProfit_direction == 'ABuy_BSell' ? BNB_USDT_ask[exchangeA]+safeTradeBuffer : BNB_USDT_bid[exchangeA]-safeTradeBuffer;
-    let exchangeBPrice = maxProfit_direction == 'ASell_BBuy' ? BNB_USDT_ask[exchangeB]+safeTradeBuffer : BNB_USDT_bid[exchangeB]-safeTradeBuffer;
+    let price = {};
+    price[exchangeA] = maxProfit_direction == 'ABuy_BSell' ? BNB_USDT_ask[exchangeA]+safeTradeBuffer : BNB_USDT_bid[exchangeA]-safeTradeBuffer;
+    price[exchangeB] = maxProfit_direction == 'ASell_BBuy' ? BNB_USDT_ask[exchangeB]+safeTradeBuffer : BNB_USDT_bid[exchangeB]-safeTradeBuffer;
     
     //rounding prices
-    exchangeAPrice = Math.round10(exchangeAPrice, priceRoundingDp[exchangeA]);
-    exchangeBPrice = Math.round10(exchangeBPrice, priceRoundingDp[exchangeB]);
+    price[exchangeA] = Math.round10(price[exchangeA], priceRoundingDp[exchangeA]);
+    price[exchangeB] = Math.round10(price[exchangeB], priceRoundingDp[exchangeB]);
 
     //quantities
-    let binanceAffordable = maxProfit_direction == 'ABuy_BSell' ? ac_USDT[exchangeA]/exchangeAPrice : ac_BNB[exchangeA];
-    let bitmaxQuantity = maxProfit_direction == 'ASell_BBuy' ? ac_USDT[exchangeB]/exchangeBPrice : ac_BNB[exchangeB];
-    let quantity = Math.floor10(Math.min(binanceAffordable, bitmaxQuantity, maxProfit_Vol), -2);    //round down quantity, BitMax & FTX accept 2 decimal places quantity
-    if(quantity<=0.05) //Binance BNB: Minimum Trade Amount 0.001 BNB, Minimum Order Size 10 USDT
+    let exchangeAAffordable = maxProfit_direction == 'ABuy_BSell' ? ac_USDT[exchangeA]/price[exchangeA] : ac_BNB[exchangeA];
+    let exchangeBAffordable = maxProfit_direction == 'ASell_BBuy' ? ac_USDT[exchangeB]/price[exchangeB] : ac_BNB[exchangeB];
+    let quantity = Math.floor10(Math.min(exchangeAAffordable, exchangeBAffordable, maxProfit_Vol), -2);    //round down quantity, BitMax & FTX accept 2 decimal places quantity
+    if(quantity<0.01 ||    //Bitmax & FTX BNB: Minimum Trade Amount 0.01 BNB 
+        ((exchangeA=="Binance" || exchangeB=="Binance") && price["Binance"]*quantity<10)) //Binance BNB: Minimum Trade Amount 0.001 BNB, Minimum Order Size 10 USDT
     {
+        console.log('quantity too small to trade');
+        console.log('side[exchangeA]: '+side[exchangeA]);
+        console.log('side[exchangeB]: '+side[exchangeB]);
+        console.log('price[exchangeA]: '+price[exchangeA]);
+        console.log('price[exchangeB]: '+price[exchangeB]);
+        console.log('quantity: '+quantity);
         traderTrading = false;
         return;
     }
 
-    console.log('exchangeASide: '+exchangeASide);
-    console.log('exchangeBSide: '+exchangeBSide);
-    console.log('exchangeAPrice: '+exchangeAPrice);
-    console.log('exchangeBPrice: '+exchangeBPrice);
+    console.log('side[exchangeA]: '+side[exchangeA]);
+    console.log('side[exchangeB]: '+side[exchangeB]);
+    console.log('price[exchangeA]: '+price[exchangeA]);
+    console.log('price[exchangeB]: '+price[exchangeB]);
     console.log('quantity: '+quantity);
 
 
@@ -865,39 +875,39 @@ async function traderTrade()
     {
         let parms = {
             symbol: "BNBUSDT",
-            side: "SELL",
+            side: side["Binance"],
             type: "LIMIT",
             timeInForce: "GTC", //GTC (Good-Til-Canceled) orders are effective until they are executed or canceled.
-            quantity: 0.1,
-            price: 300,
+            quantity: quantity,
+            price: price["Binance"],
             // newClientOrderId: "ATM_generated_order_1"
         };
         binanceInterface.postOrder(parms, binancePostOrderCB);
     }
 
     //Bitmax
-    if(exchangeA=="BitMax" || exchangeB=="BitMax")
-    {
-        let parms = {
-            symbol: "BNB/USDT",
-            side: "sell",
-            orderType: "limit",
-            orderQty: "0.1",
-            orderPrice: "300",
-            // id: "ATM_generated_order_1"
-        };
-        bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
-    }
+    // if(exchangeA=="BitMax" || exchangeB=="BitMax")
+    // {
+    //     let parms = {
+    //         symbol: "BNB/USDT",
+    //         side: "sell",
+    //         orderType: "limit",
+    //         orderQty: "0.1",
+    //         orderPrice: "300",
+    //         // id: "ATM_generated_order_1"
+    //     };
+    //     bitmaxInterface.postOrder(parms, bitmaxPostOrderCB);
+    // }
 
     //FTX
     if(exchangeA=="FTX" || exchangeB=="FTX")
     {
         let parms = {
             market: "BNB/USDT",
-            side: "sell",
-            price: 300,
+            side: side["FTX"].toLowerCase(),
+            price: price["FTX"],
             type: "limit",
-            size: 0.1,
+            size: quantity,
             clientId: "FTX_" + Date.now()
         };
 
@@ -947,7 +957,7 @@ async function traderTrade()
         {
             let parms = {
                 symbol: "BNBUSDT",
-                orderId: postedOrderId["Binance"]
+                origClientOrderId: postedOrderId["Binance"]
             };
             binanceInterface.getOrder(parms, binanceGetOrderCB);
         }
@@ -957,11 +967,7 @@ async function traderTrade()
         // check FTX order
         if(exchangeA=="FTX" || exchangeB=="FTX")
         {
-            let parms = {
-                symbol: "BNBUSDT",
-                orderId: postedOrderId["Binance"]
-            };
-            binanceInterface.getOrder(parms, binanceGetOrderCB);
+            ftxInterface.getOrder(postedOrderId["FTX"], ftxGetOrderCB);
         }
 
 
@@ -974,6 +980,7 @@ async function traderTrade()
 
 
     traderTrading = false;
+    if(performOneTrade) traderActive = false;
 }
 
 function binancePostOrderCB(resBody)
@@ -1020,12 +1027,22 @@ function ftxPostOrderCB(resBody)
     console.log('ftxPostOrderCB: ')
     console.log(resBody)
 
-    if(resBody && resBody.success==true)
-    {
-        postedOrderId["FTX"] = resBody.result.clientId;
-        tradeHistory[postedOrderId["FTX"]] = resBody;
+    //direct post method
+    // if(resBody && resBody.success==true)
+    // {
+    //     postedOrderId["FTX"] = resBody.result.clientId;
+    //     tradeHistory[postedOrderId["FTX"]] = resBody;
 
-        let newRecord = [postedOrderId["FTX"], Date.parse(resBody.result.createdAt), "FTX", resBody.result.side, resBody.result.price, resBody.result.size, "", "", resBody.result.status];
+    //     let newRecord = [postedOrderId["FTX"], Date.parse(resBody.result.createdAt), "FTX", resBody.result.side, resBody.result.price, resBody.result.size, "", "", resBody.result.status];
+    //     tradeHistoryUI(newRecord);
+    // }
+    //CCXT method
+    if(resBody && resBody.info)
+    {
+        postedOrderId["FTX"] = resBody.info.clientId;
+        tradeHistory[postedOrderId["FTX"]] = resBody.info;
+
+        let newRecord = [postedOrderId["FTX"], Date.parse(resBody.info.createdAt), "FTX", resBody.info.side, resBody.info.price, resBody.info.size, "", "", resBody.info.status];
         tradeHistoryUI(newRecord);
     }
     else
@@ -1061,9 +1078,30 @@ function binanceGetOrderCB(resBody)
         console.error(resBody);
     }
 }
+function ftxGetOrderCB(resBody)
+{
+    console.log('ftxGetOrderCB: ')
+    console.log(resBody)
 
+    if(resBody && resBody.success==true)
+    {
+        orderId = resBody.result.clientId;
+        tradeHistory[orderId] = resBody.result;
 
+        let updateRecord = [orderId, Date.parse(resBody.result.createdAt), "FTX", resBody.result.side, resBody.result.price, resBody.result.size, resBody.result.avgFillPrice, resBody.result.size - resBody.result.remainingSize, resBody.result.status];
+        tradeHistoryUI(updateRecord);
 
+        if(orderId == postedOrderId["FTX"])
+        {
+            postOrderFilled["FTX"] = (resBody.result.status == "closed");
+        }
+    }
+    else
+    {
+        console.error("Biance get order failed");
+        console.error(resBody);
+    }
+}
 
 
 
@@ -1104,51 +1142,48 @@ function binanceGetOrderCB(resBody)
 // }
 
 
-async function testTrade()
-{
+// async function testTrade()
+// {
+//     // ftxInterface.getOrder('FTX_1615019509082', ftxGetOrderCB);
+//     // return;
 
-    //FTX
-    if(exchangeA=="FTX" || exchangeB=="FTX")
-    {
-        // let parms = {
-        //     market: "BNB/USDT",
-        //     side: "sell",
-        //     price: 300,
-        //     type: "limit",
-        //     size: 0.1,
-        //     reduceOnly: false,
-        //     ioc: false,
-        //     postOnly: false,
-        //     clientId: "FTX_" + Date.now()
-        // };
-        let parms = {
-          "market": "XRP-PERP",
-          "side": "sell",
-          "price": 0.306525,
-          "type": "limit",
-          "size": 31431.0,
-          "reduceOnly": false,
-          "ioc": false,
-          "postOnly": false,
-          "clientId": null
-        };
-        ftxInterface.postOrder(parms, ftxPostOrderCB);
-    }
+//     //FTX
+//     if(exchangeA=="FTX" || exchangeB=="FTX")
+//     {
+//         let parms = {
+//             market: "BNB/USDT",
+//             side: "sell",
+//             price: 300,
+//             type: "limit",
+//             size: 0.1,
+//             clientId: "FTX_" + Date.now()
+//         };
+//         ftxInterface.postOrder(parms, ftxPostOrderCB);
+//     }
 
-    //waiting for server responses
-    while(!postOrderHandled["FTX"])
-    {
-        // if time > sth, show possible failure, add it to record and ask for intervention
+//     //waiting for server responses
+//     while(!postOrderHandled["FTX"])
+//     {
+//         // if time > sth, show possible failure, add it to record and ask for intervention
 
-        await delay(100);
-    }
+//         await delay(100);
+//     }
 
-    await delay(1000);
+//     await delay(1000);
 
-    // check FTX order
-    // let parms = {
-    //     symbol: "BNBUSDT",
-    //     origClientOrderId: postedOrderId["Binance"]
-    // };
-    // binanceInterface.getOrder(parms, binanceGetOrderCB);
-}
+//     // check FTX order
+//     if(exchangeA=="FTX" || exchangeB=="FTX")
+//     {
+//         ftxInterface.getOrder(postedOrderId["FTX"], ftxGetOrderCB);
+//     }
+// }
+
+
+// async function testTrade()
+// {
+//     traderActive = true;
+
+//     await traderTrade();
+
+//     traderActive = false;
+// }

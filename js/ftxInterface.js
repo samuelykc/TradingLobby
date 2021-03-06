@@ -1,12 +1,14 @@
 const https = require('follow-redirects').https;
 const querystring = require('querystring');
 const CryptoJS = require("crypto-js");
+const ccxt = require ('ccxt');
 
 
 const hostname = 'ftx.com';
 
 
 let APIPublicKey, APISecretKey;
+let exchange;
 
 
 
@@ -56,6 +58,13 @@ module.exports = {
     {
         APIPublicKey = publicKey;
         APISecretKey = secretKey;
+
+        exchange = new ccxt.ftx ({
+            'apiKey': publicKey,
+            'secret': secretKey,
+            'enableRateLimit': true
+        });
+        // console.log(exchange);
     },
 
     /* -------------- Public API -------------- */
@@ -109,27 +118,9 @@ module.exports = {
         httpsRequest(options, callback);
     },
 
-    // postOrderTest(parms, callback)
-    // {
-    //     parms.timestamp = Date.now();
-    //     parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
-
-    //     let options = {
-    //         'method': 'POST',
-    //         'hostname': hostname,
-    //         'path': '/api/v3/order/test?' + querystring.stringify(parms),
-    //         'headers': {
-    //             'Content-Type': 'application/json',
-    //             'X-MBX-APIKEY': APIPublicKey
-    //         },
-    //         'maxRedirects': 20
-    //     };
-
-    //     httpsRequest(options, callback);
-    // },
-
     postOrder(parms, callback)
     {
+        /*
         let timestamp = Date.now();
         let payload = timestamp+'POST'+'/api/orders'+JSON.stringify(parms).replaceAll(',', ', ').replaceAll(':', ': ');
         let signature = CryptoJS.HmacSHA256(payload, APISecretKey).toString();
@@ -151,24 +142,71 @@ module.exports = {
         };
 
         httpsRequest(options, callback);
+        */
+
+        let parameters = {};
+        if(parms.reduceOnly) parameters.reduceOnly = parms.reduceOnly;
+        if(parms.ioc) parameters.ioc = parms.ioc;
+        if(parms.postOnly) parameters.postOnly = parms.postOnly;
+        if(parms.clientId) parameters.clientId = parms.clientId;
+
+        let create_order_promise = exchange.create_order(parms.market, parms.type, parms.side, parms.size, parms.price, parameters);
+
+        console.log(create_order_promise);
+
+        create_order_promise.then(
+            function(val)
+            {
+                callback(val);
+            }
+        )
+        .catch(
+            (reason) =>
+            {
+                callback(reason);
+            }
+        );
     },
 
-    // getOrder(parms, callback)
-    // {
-    //     parms.timestamp = Date.now();
-    //     parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
+    getOrder(client_order_id, callback)
+    {
+        let timestamp = Date.now();
+        let payload = timestamp+'GET'+'/api/orders/by_client_id/'+client_order_id;
+        let signature = CryptoJS.HmacSHA256(payload, APISecretKey).toString();
 
-    //     let options = {
-    //         'method': 'GET',
-    //         'hostname': hostname,
-    //         'path': '/api/v3/order?' + querystring.stringify(parms),
-    //         'headers': {
-    //             'Content-Type': 'application/json',
-    //             'X-MBX-APIKEY': APIPublicKey
-    //         },
-    //         'maxRedirects': 20
-    //     };
+        console.log(payload)
+        // console.log(signature)
 
-    //     httpsRequest(options, callback);
-    // },
+        let options = {
+            'method': 'GET',
+            'hostname': hostname,
+            'path': '/api/orders/by_client_id/' + client_order_id,
+            'headers': {
+                'Content-Type': 'application/json',
+                'FTX-KEY': APIPublicKey,
+                'FTX-TS': timestamp,
+                'FTX-SIGN': signature
+            },
+            'maxRedirects': 20
+        };
+
+        httpsRequest(options, callback);
+
+        // let create_order_promise = exchange.fetch_order(parms.id, parms.type, parms.side, parms.size, parms.price, parameters);
+
+        // console.log(create_order_promise);
+
+        // create_order_promise.then(
+        //     function(val)
+        //     {
+        //         callback(val);
+        //     }
+        // )
+        // .catch(
+        //     (reason) =>
+        //     {
+        //         callback(reason);
+        //     }
+        // );
+    },
 };
