@@ -19,7 +19,7 @@ let BitMax_fee = 0.001;
 let fee = {};
 fee["Binance"] = 0.001;
 fee["BitMax"] = 0.001;
-fee["FTX"] = 0.0007;
+fee["FTX"] = 0.000665;
 
 
 
@@ -340,7 +340,7 @@ let bitmaxGetTickerRespondHandled = true;
 let ftxGetPriceRespondHandled = true;
 let ftxGetOrderBookRespondHandled = true;
 
-let ftxTickerSubscription;
+let ftxTickerSubscription = false;
 
 async function asyncMarketFetcher() {
     while(operating)
@@ -409,23 +409,28 @@ async function asyncMarketFetcher() {
                 ftxGetPriceRespondHandled = false;
                 ftxInterface.getPrice("BNB/USDT", ftxGetPriceCB);
             }
-            // if(ftxGetOrderBookRespondHandled)
-            // {
-            //     ftxGetOrderBookRespondHandled = false;
+            if(ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 800) //since FTX now subscribes to stream to get orderbook updates, this function now only compensate when stream not updating for a long period
+            {
+                ftxGetOrderBookRespondHandled = false;
                 
-            //     const parms = {
-            //         depth: 1
-            //     };
-            //     ftxInterface.getOrderBook("BNB/USDT", parms, ftxGetOrderBookCB);
-            // }
+                const parms = {
+                    depth: 1
+                };
+                ftxInterface.getOrderBook("BNB/USDT", parms, ftxGetOrderBookCB);
+            }
 
             //resume from failed respond waiting
             if(!ftxGetPriceRespondHandled && FTX_PriceLastUpdatePassed > 2000) ftxGetPriceRespondHandled = true;
-            // if(!ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 1000) ftxGetOrderBookRespondHandled = true;
+            if(!ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 1000) ftxGetOrderBookRespondHandled = true;
 
+            //using subscription instead of polling data
             if(!ftxTickerSubscription)
             {
-                ftxInterface.subscribeTickerStream("BNB/USDT", ftxTickerSubscriptionCB);
+                ftxInterface.subscribeTickerStream("BNB/USDT", 
+                                                    ftxTickerSubscriptionCB, 
+                                                    () => { ftxTickerSubscription = false; }, 
+                                                    () => { ftxTickerSubscription = false; });
+                ftxTickerSubscription = true;
             }
         }
         
@@ -717,6 +722,9 @@ function priceRecorderCheckProfit(lastUpdate)
 let traderActive = false;
 function toggleTrader()
 {
+    // testTrade();
+    // return;
+
     traderActive = !traderActive;
     traderTrading = false;
 
@@ -1138,11 +1146,11 @@ function ftxGetOrderCB(resBody)
 //     //Binance
 //     let parmsBinance = {
 //         symbol: "BNBUSDT",
-//         side: "SELL",
+//         side: "BUY",
 //         type: "LIMIT",
 //         timeInForce: "GTC", //GTC (Good-Til-Canceled) orders are effective until they are executed or canceled.
 //         quantity: 0.1,
-//         price: 400,
+//         price: 100,
 //         // newClientOrderId: "ATM_generated_order_1"
 //     };
 //     binanceInterface.postOrder(parmsBinance, binancePostOrderCB);

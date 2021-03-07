@@ -114,7 +114,7 @@ module.exports = {
         httpsRequest(options, callback);
     },
 
-    subscribeTickerStream(market_name, callback)
+    subscribeTickerStream(market_name, onmessage, onclose, onerror)
     {
         let socket = new WebSocket("wss://ftx.com/ws/");
 
@@ -135,7 +135,7 @@ module.exports = {
             try
             {
                 let jsonData = JSON.parse(event.data);
-                if(jsonData.type=="update") callback(jsonData);
+                if(jsonData.type=="update") onmessage(jsonData);
             }
             catch(e)
             {
@@ -154,11 +154,14 @@ module.exports = {
                 console.log('[close] Connection died');
             }
             stopKeepStreamAlive = true;
+            onclose();
         };
 
         socket.onerror = function(error)
         {
             console.log(`[error] ${error.message}`);
+            stopKeepStreamAlive = true;
+            onerror();
         };
     },
 
@@ -243,8 +246,7 @@ module.exports = {
         let payload = timestamp+'GET'+'/api/orders/by_client_id/'+client_order_id;
         let signature = CryptoJS.HmacSHA256(payload, APISecretKey).toString();
 
-        console.log(payload)
-        // console.log(signature)
+        console.log(payload);
 
         let options = {
             'method': 'GET',
@@ -260,22 +262,5 @@ module.exports = {
         };
 
         httpsRequest(options, callback);
-
-        // let create_order_promise = exchange.fetch_order(parms.id, parms.type, parms.side, parms.size, parms.price, parameters);
-
-        // console.log(create_order_promise);
-
-        // create_order_promise.then(
-        //     function(val)
-        //     {
-        //         callback(val);
-        //     }
-        // )
-        // .catch(
-        //     (reason) =>
-        //     {
-        //         callback(reason);
-        //     }
-        // );
     },
 };
