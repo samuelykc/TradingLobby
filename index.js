@@ -340,6 +340,8 @@ let bitmaxGetTickerRespondHandled = true;
 let ftxGetPriceRespondHandled = true;
 let ftxGetOrderBookRespondHandled = true;
 
+let ftxTickerSubscription;
+
 async function asyncMarketFetcher() {
     while(operating)
     {
@@ -407,19 +409,24 @@ async function asyncMarketFetcher() {
                 ftxGetPriceRespondHandled = false;
                 ftxInterface.getPrice("BNB/USDT", ftxGetPriceCB);
             }
-            if(ftxGetOrderBookRespondHandled)
-            {
-                ftxGetOrderBookRespondHandled = false;
+            // if(ftxGetOrderBookRespondHandled)
+            // {
+            //     ftxGetOrderBookRespondHandled = false;
                 
-                const parms = {
-                    depth: 1
-                };
-                ftxInterface.getOrderBook("BNB/USDT", parms, ftxGetOrderBookCB);
-            }
+            //     const parms = {
+            //         depth: 1
+            //     };
+            //     ftxInterface.getOrderBook("BNB/USDT", parms, ftxGetOrderBookCB);
+            // }
 
             //resume from failed respond waiting
             if(!ftxGetPriceRespondHandled && FTX_PriceLastUpdatePassed > 2000) ftxGetPriceRespondHandled = true;
-            if(!ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 1000) ftxGetOrderBookRespondHandled = true;
+            // if(!ftxGetOrderBookRespondHandled && orderBookLastUpdatePassed["FTX"] > 1000) ftxGetOrderBookRespondHandled = true;
+
+            if(!ftxTickerSubscription)
+            {
+                ftxInterface.subscribeTickerStream("BNB/USDT", ftxTickerSubscriptionCB);
+            }
         }
         
         //show time
@@ -535,6 +542,22 @@ function ftxGetOrderBookCB(resBody)
     recalMaxProfit(orderBookLastUpdate["FTX"]);
 
     ftxGetOrderBookRespondHandled = true;
+}
+function ftxTickerSubscriptionCB(data)
+{
+    orderBookLastUpdate["FTX"] = Date.now();
+
+    // BNB_USDT_close["FTX"] = parseFloat(data.data.last);
+    BNB_USDT_bid["FTX"] = parseFloat(data.data.bid);
+    BNB_USDT_ask["FTX"] = parseFloat(data.data.ask);
+    BNB_USDT_bidVol["FTX"] = parseFloat(data.data.bidSize);
+    BNB_USDT_askVol["FTX"] = parseFloat(data.data.askSize);
+
+    // updateClose("FTX");
+    updateOrderBook("FTX");
+
+    // recalCloseDiff();
+    recalMaxProfit(orderBookLastUpdate["FTX"]);
 }
 
 //UI
