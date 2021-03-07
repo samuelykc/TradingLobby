@@ -90,6 +90,7 @@ module.exports = {
     getWalletAllCoin(callback)
     {
         let parms = {
+            recvWindow: 60000,  //resolve {code: -1021, msg: "Timestamp for this request is outside of the recvWindow."}
             timestamp: Date.now(),
             // signature: 
         }
@@ -133,6 +134,7 @@ module.exports = {
 
     postOrder(parms, callback)
     {
+        parms.recvWindow = 60000;   //resolve {code: -1021, msg: "Timestamp for this request is outside of the recvWindow."}
         parms.timestamp = Date.now();
         parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
@@ -152,6 +154,7 @@ module.exports = {
 
     getOrder(parms, callback)
     {
+        parms.recvWindow = 60000;   //resolve {code: -1021, msg: "Timestamp for this request is outside of the recvWindow."}
         parms.timestamp = Date.now();
         parms.signature = CryptoJS.HmacSHA256(querystring.stringify(parms), APISecretKey).toString();
 
