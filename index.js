@@ -23,6 +23,11 @@ fee["FTX"] = 0.0007;
 
 
 
+/* ------------------ Exchange Manager ------------------ */
+let operating = true;   //control asyncAccountFetcher() & asyncMarketFetcher()
+let exchangeA, exchangeB;
+
+
 /* ------------------ Account Balance ------------------ */
 let ac_BNB = {};
 let ac_USDT = {};
@@ -133,8 +138,6 @@ function delay(t, val) {
 
 
 /* ------------------ Exchange Manager ------------------ */
-let operating = true;
-let exchangeA, exchangeB;
 function setExchange()
 {
     exchangeA = document.getElementById("exchangeA").value;
@@ -949,7 +952,7 @@ async function traderTrade()
     while((!postOrderFilled[exchangeA] || !postOrderFilled[exchangeB]) && traderActive)
     {
         // check Binance order
-        if(exchangeA=="Binance" || exchangeB=="Binance")
+        if((exchangeA=="Binance" || exchangeB=="Binance") && !postOrderFilled["Binance"])
         {
             let parms = {
                 symbol: "BNBUSDT",
@@ -961,7 +964,7 @@ async function traderTrade()
         // check BitMax order
 
         // check FTX order
-        if(exchangeA=="FTX" || exchangeB=="FTX")
+        if((exchangeA=="FTX" || exchangeB=="FTX") && !postOrderFilled["FTX"])
         {
             ftxInterface.getOrder(postedOrderId["FTX"], ftxGetOrderCB);
         }
