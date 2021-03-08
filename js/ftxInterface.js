@@ -114,7 +114,7 @@ module.exports = {
         httpsRequest(options, callback);
     },
 
-    subscribeTickerStream(market_name, onmessage, onclose, onerror)
+    subscribeTickerStream(market_name, onmessage, onclose)
     {
         let socket = new WebSocket("wss://ftx.com/ws/");
 
@@ -161,7 +161,6 @@ module.exports = {
         {
             console.log(`[error] ${error.message}`);
             stopKeepStreamAlive = true;
-            onerror();
         };
     },
 

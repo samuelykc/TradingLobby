@@ -340,6 +340,7 @@ let bitmaxGetTickerRespondHandled = true;
 let ftxGetPriceRespondHandled = true;
 let ftxGetOrderBookRespondHandled = true;
 
+let binanceTickerSubscription = false;
 let ftxTickerSubscription = false;
 
 async function asyncMarketFetcher() {
@@ -369,7 +370,7 @@ async function asyncMarketFetcher() {
                 };
                 binanceInterface.getPrice(parms, binanceGetPriceCB);
             }
-            if(binanceGetOrderBookRespondHandled)
+            if(binanceGetOrderBookRespondHandled && orderBookLastUpdatePassed["Binance"] > 800) //since Binance now subscribes to stream to get orderbook updates, this function now only compensate when stream not updating for a long period
             {
                 binanceGetOrderBookRespondHandled = false;
                 
@@ -382,6 +383,13 @@ async function asyncMarketFetcher() {
             //resume from failed respond waiting
             if(!binanceGetPriceRespondHandled && Binance_PriceLastUpdatePassed > 2000) binanceGetPriceRespondHandled = true;
             if(!binanceGetOrderBookRespondHandled && orderBookLastUpdatePassed["Binance"] > 1000) binanceGetOrderBookRespondHandled = true;
+
+            //using subscription instead of polling data
+            if(!binanceTickerSubscription)
+            {
+                binanceInterface.subscribeTickerStream("bnbusdt", binanceTickerSubscriptionCB, () => { binanceTickerSubscription = false; });
+                binanceTickerSubscription = true;
+            }
         }
 
         //Bitmax
@@ -426,10 +434,7 @@ async function asyncMarketFetcher() {
             //using subscription instead of polling data
             if(!ftxTickerSubscription)
             {
-                ftxInterface.subscribeTickerStream("BNB/USDT", 
-                                                    ftxTickerSubscriptionCB, 
-                                                    () => { ftxTickerSubscription = false; }, 
-                                                    () => { ftxTickerSubscription = false; });
+                ftxInterface.subscribeTickerStream("BNB/USDT", ftxTickerSubscriptionCB, () => { ftxTickerSubscription = false; });
                 ftxTickerSubscription = true;
             }
         }
@@ -482,6 +487,19 @@ function binanceGetOrderBookCB(resBody)
     recalMaxProfit(orderBookLastUpdate["Binance"]);
 
     binanceGetOrderBookRespondHandled = true;
+}
+function binanceTickerSubscriptionCB(data)
+{
+    orderBookLastUpdate["Binance"] = Date.now();
+
+    BNB_USDT_bid["Binance"] = parseFloat(data.b);
+    BNB_USDT_ask["Binance"] = parseFloat(data.a);
+    BNB_USDT_bidVol["Binance"] = parseFloat(data.B);
+    BNB_USDT_askVol["Binance"] = parseFloat(data.A);
+
+    updateOrderBook("Binance");
+
+    recalMaxProfit(orderBookLastUpdate["Binance"]);
 }
 
 function bitmaxGetTickerCB(resBody)
