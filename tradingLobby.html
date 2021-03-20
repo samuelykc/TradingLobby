@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Lobby</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+
+
+    <link rel="stylesheet" href="tradingLobby.css">
+    <link rel="stylesheet" href="css/modalBox.css">
+
+    <script src="js/modalBox.js"></script>
+    <script src="tradingLobby.js"></script>
+</head>
+
+<body>
+    <select name="exchangeA" id="exchangeA" class="browser-default" value>
+      <option value="Binance" selected="selected">Binance</option>
+      <option value="BitMax">BitMax</option>
+      <option value="FTX">FTX</option>
+    </select>
+    <select name="exchangeB" id="exchangeB" class="browser-default">
+      <option value="Binance">Binance</option>
+      <option value="BitMax">BitMax</option>
+      <option value="FTX" selected="selected">FTX</option>
+    </select>
+    <!-- <div class="input">
+      <input type="number" name="exchangeAFee" id="exchangeAFee">
+      <input type="number" name="exchangeBFee" id="exchangeBFee">
+    </div> -->
+    <button class="waves-effect waves-light btn" onclick="setExchangeAndRestart()">Set Exchange</button>
+
+
+
+    <button class="waves-effect waves-light btn" onclick="openATM()">ATM</button>
+
+
+
+
+
+
+
+
+    <!--JavaScript at end of body for optimized loading-->
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+</body>
+
+</html>

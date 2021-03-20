@@ -1,0 +1,138 @@
+body
+{
+    color: #dbdbdb;
+    background-color: #0d1117;
+    margin: 20px;
+}
+
+select
+{
+    background-color: #aba9a9;
+    width: 200px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.board
+{
+    margin-bottom: 25px;
+}
+
+#tableAc
+{
+    width: 70%;
+}
+#tableDiff
+{
+    width: 80%;
+}
+#tableRecord, #tableHistory
+{
+    width: 93%;
+}
+#tableAc, #tableDiff, #tableRecord, #tableHistory
+{
+    margin-left: auto;
+    margin-right: auto;
+}
+.tableDescription
+{
+    margin-left: 15%;
+}
+
+table caption
+{
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+th
+{
+    color: #c2c2c2;
+}
+th, td
+{
+    text-align: center;
+    background-color: #121a26;
+}
+
+.thDiff
+{
+    width: 120px;
+}
+#market_exchangeA, #market_exchangeB
+{
+    width: 280px;
+}
+
+.tdClose
+{
+    color: white;
+    font-size: 20px;
+}
+.tdBid, .tdBuy
+{
+    color: #0ecb81;
+}
+.tdAsk, .tdSell
+{
+    color: #f6465d;
+}
+.tdLastUpdate
+{
+    color: #ababab;
+    line-height: 12px
+}
+.tdTime
+{
+    width: 160px;
+}
+
+.card
+{
+    background-color: #1e2a3b;
+    padding: 20px 10px 10px 0;
+    border-radius: 20px;
+}
+
+.input
+{
+    width: 150px;
+    margin-left: 30px;
+    display: inline-block;
+}
+.input input, .input label
+{
+    color: white;
+}
+button
+{
+    margin-left: 30px;
+}
+/*#toggleTraderBtn
+{
+  background-color: rgba(244, 67, 54, 0.7);
+}*/
+
+
+
+
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
