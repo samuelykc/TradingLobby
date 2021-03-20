@@ -793,7 +793,7 @@ function tradeHistoryUI(trade)  //append as the first row, or update row
 
         let cell2 = row.insertCell(2);
         cell2.innerHTML = trade[3];
-        cell2.className = trade[3] == "BUY"? "tdBuy" : "tdSell";
+        cell2.className = trade[3].toLowerCase() == "buy"? "tdBuy" : "tdSell";
 
         row.insertCell(3).innerHTML = parseFloat(trade[4]).toFixed(4)+' / '+parseFloat(trade[5]).toFixed(4);
         row.insertCell(4).innerHTML = parseFloat(trade[6]).toFixed(4)+' / '+parseFloat(trade[7]).toFixed(4);
