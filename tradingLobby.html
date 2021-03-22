@@ -31,19 +31,134 @@
       <option value="BitMax">BitMax</option>
       <option value="FTX" selected="selected">FTX</option>
     </select>
-    <!-- <div class="input">
-      <input type="number" name="exchangeAFee" id="exchangeAFee">
-      <input type="number" name="exchangeBFee" id="exchangeBFee">
-    </div> -->
+
+
     <button class="waves-effect waves-light btn" onclick="setExchangeAndRestart()">Set Exchange</button>
-
-
 
     <button class="waves-effect waves-light btn" onclick="openATM()">ATM</button>
 
 
+    <ul class="collection" id="tempTest_coinList">
+      <li class="collection-item avatar coinListItem">
+        <i class="circle green">BTC</i>
+        <ul class="coinSummary">
+          <li>BTC/USDT</li>
+          <li>57,572.01</li>
+          <li>+0.91%</li>
+        </ul>
+        <p>
+          <label>
+            <input type="checkbox" checked="checked" />
+            <span>Monitor</span>
+          </label>
+          <div class="switch priceUp">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 50
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 55
+            </label>
+          </div>
+          <div class="switch priceDown">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 40
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 5% (15m)
+            </label>
+          </div>
+        </p>
+        <a class="secondary-content btn-floating pulse red lighten-1">
+          <i class="material-icons">notifications_active</i>
+        </a>
+      </li>
 
+      <li class="collection-item avatar coinListItem">
+        <i class="circle green">BTC</i>
+        <ul class="coinSummary">
+          <li>BTC/USDT</li>
+          <li>57,572.01</li>
+          <li>+0.91%</li>
+        </ul>
+        <p>
+          <label>
+            <input type="checkbox" checked="checked" />
+            <span>Monitor</span>
+          </label>
+          <div class="switch">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 50
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 55
+            </label>
+          </div>
+          <div class="switch">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 40
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 5% (15m)
+            </label>
+          </div>
+        </p>
+      </li>
 
+      <li class="collection-item avatar coinListItem">
+        <i class="circle green">BTC</i>
+        <ul class="coinSummary">
+          <li>BTC/USDT</li>
+          <li>57,572.01</li>
+          <li>+0.91%</li>
+        </ul>
+        <p>
+          <label>
+            <input type="checkbox" checked="checked" />
+            <span>Monitor</span>
+          </label>
+          <div class="switch">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 50
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              >= 55
+            </label>
+          </div>
+          <div class="switch">
+            <label>
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 40
+            </label>
+            <label class="pulse">
+              <input type="checkbox">
+              <span class="lever"></span>
+              <= 5% (15m)
+            </label>
+          </div>
+        </p>
+      </li>
+    </ul>
 
 
 

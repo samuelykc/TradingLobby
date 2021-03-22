@@ -1,20 +1,15 @@
 const { ipcRenderer } = require('electron');
-const binanceInterface = require('./js/binanceInterface');
-const bitmaxInterface = require('./js/bitmaxInterface');
-const ftxInterface = require('./js/ftxInterface');
-const fileIOInterface = require('./js/fileIOInterface');
-const mathExtend = require('./js/mathExtend');
-const dateFormat = require('dateformat');
-
-
-
+const coinListItem = require('./components/coinListItem');
 
 
 
 //once the window is ready
 window.onload = function()
 {
-
+  const coinList = document.getElementById("tempTest_coinList");
+  const pairName = 'BTC/USDT';
+  const alarms = '';
+  coinListItem.create(coinList, pairName, alarms);
 };
 
 

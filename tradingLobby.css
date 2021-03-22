@@ -13,10 +13,76 @@ select
     white-space: nowrap;
 }
 
+
+.collection .collection-item.coinListItem
+{
+    background-color: #121a26;
+}
+
+
+.coinSummary
+{
+    list-style: none;
+}
+.coinSummary li
+{
+    display: inline-block;
+    width: 28%;
+}
+
+
+
+
+.switch label .lever
+{
+    background-color: #999999;
+}
+
+.switch.priceUp label input[type=checkbox]:checked+.lever
+{
+    background-color: #81c784;
+}
+.switch.priceDown label input[type=checkbox]:checked+.lever
+{
+    background-color: #e57373;
+}
+
+.switch.priceUp label input[type=checkbox]:checked+.lever:after
+{
+    background-color: #4caf50;
+}
+.switch.priceDown label input[type=checkbox]:checked+.lever:after
+{
+    background-color: #f44336;
+}
+
+
+
+.idleBell
+{
+    display: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 .board
 {
     margin-bottom: 25px;
 }
+
+
+
+
 
 #tableAc
 {
@@ -40,29 +106,7 @@ select
     margin-left: 15%;
 }
 
-table caption
-{
-    font-size: 20px;
-    margin-bottom: 5px;
-}
-th
-{
-    color: #c2c2c2;
-}
-th, td
-{
-    text-align: center;
-    background-color: #121a26;
-}
 
-.thDiff
-{
-    width: 120px;
-}
-#market_exchangeA, #market_exchangeB
-{
-    width: 280px;
-}
 
 .tdClose
 {
