@@ -1,15 +1,14 @@
 const { ipcRenderer } = require('electron');
-const coinListItem = require('./components/coinListItem');
+const CoinListController = require('./components/coinListController');
 
 
 
 //once the window is ready
 window.onload = function()
 {
-  const coinList = document.getElementById("tempTest_coinList");
-  const pairName = 'BTC/USDT';
-  const alarms = '';
-  coinListItem.create(coinList, pairName, alarms);
+  const coinListRoot = document.getElementById("coinListRoot");
+
+  let list = new CoinListController(coinListRoot, 'Binance');
 };
 
 
