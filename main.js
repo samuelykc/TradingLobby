@@ -4,7 +4,7 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 
 function createWindow () {
     const win = new BrowserWindow({
-        width: 570,
+        width: 580,
         height: 1000,
         webPreferences: {
             contextIsolation: false,    //so that the window could access other scripts with require

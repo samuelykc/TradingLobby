@@ -1,7 +1,9 @@
 /*
 
 <li class="collection-item avatar coinListItem">
-  <i class="circle green">BTC</i>
+  <!-- <i class="circle green">BTC</i> -->
+  <img class="circle green" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAANlBMVEVHcEz/miT5lRv5lBr4lBr3kxr4kxr4kxr3kxr9lxz937z6w4D4pkL++PH////+7Nf6tGH80Z1gLiRMAAAACnRSTlMADz9ehavC4f8dTtIi3wAAA9xJREFUeAG804mBBFEEBFA0VSX/hDeAnfM38wJwsyMeVxZAUiIJVF7h9hMeCeohIreriITeQMZeduozGzV0Ul9gtk2K0tcq5tJDRxD76fdL6NIt1XbLpbuYdi6oAQw7lBqSdqKhMej98U+vITXoYA2lcWWfc2gBfP/8ZipoagnbPuDUGvr8/se3AK3C/P/NfmNq2R+t5oH0OAhD4QQ3Amrc/7BbwraM/dtPMvumepo16EMNXUSklJ0qpVJ2Ko28gCwiXOqoy+gGkKSLxoDoB6DKW/r+MNgdMwYAoNINaO+P1t1BYQwCEZC7Afb+0P7REAxwBzgQkC4LOuGVu+IISFeG9IqFwKbN6ASBbg2iJURgdzM3IxQBnEMsBMhvaTOKItC1Rg7A5F+xBhHoSoEDaHKk4kWgaw3EIJUD9ejjQqAr+asA+VrsQaBr8ceAWlgulB16RYIgVZUzNcqw5mAWMDmVVrgwiKbBKufiimIYTUNyJTWXD7axBuDXcQsWIvRJ3fHdUNwHc77DgO3vBm7BHCtFy9HFp8b7EA2F42ewEOvSk1QBXIbnfQQ+IgR7nZAGIHBigQEQ3EXgNEY1CIJtEAJd7MNwAxiEEdiXDIpQmEYh0FXcFE4jEIifwPSYhyJA3lA0P5ahCDRvJFoe60gETD5ESDBe7yAgn61a86ej1R0G+KAqb9Ws7rNyhUqCLYYAIM3/w4AqqJgwA+IIAP8H9IggAKhkUI8tjsCXxnAxvDfY7kQB26GP4Y8bACQCawcFKeEGrAMSwb4gZXxQso5JBDUQhboBy6BEQE0+ZeCQYI4jcJ6JFGwPp2G1QLaAE6ZHiiOwU4l0h88wApeZijLUGm1xBHZiL4Yb1JiQNtv5WK/neIZ1pzM2n9RSrrse9lHYW7MUy4B2Xa0Y1pw+YzUIMMolhEEAAkXrLfo8KkbnxXNkLMha7fz/UtARTQoXYeWfotxaoCpIwMIAyYVYS1ENjY03aFDZx3B+NcgDiA+CRhDmAXxU6jSiAR7wj+upjGyL5sCjJWoAk+/xcnFWJK3p+f/N+XaZ/I/FVL8+DSX3u93qqkj4NEJoDbxcpsC+QP39v1b434lF7O129SBQ99YQmRlRfI8j+fcFGM760BLFEkWABu0zvaII5JBe+AoxhMCQdaptPAIggc6kOACBdGORiWq9jcA8YpXrBgIrsMwGlwcW3ywFMACMoGEAfG/eDq4AgAAYigGw/8Km6IsV2uuPDxp90umj1j+y3nJB2EzSbvDCqj7v98DBEw+PXDzz8dCJUi8wQvfcz4NHTz49epXsF8DnHcPXNU+/NX4H/P8BC2PKINdSx6oAAAAASUVORK5CYII="></img>
+
   <ul class="coinSummary">
     <li class="pair">BTC/USDT</li>
     <li class="price priceUp">57,572.01</li>
@@ -11,36 +13,39 @@
     <li><div class="priceBar"><div class="priceBarFill"></div></div></li>
     <li class="priceHigh">58,669.25</li>
   </ul>
-  <p>
-    <label>
-      <input type="checkbox" checked="checked" />
+
+  <p class="alarmSection">
+    <label class="monitorCheckboxLabel">
+      <input class="monitorCheckbox" type="checkbox" checked="checked" />
       <span>Monitor</span>
     </label>
+    <button class="editAlarmsBtn">Edit</button>
     <div class="switch priceUp">
       <label>
         <input type="checkbox">
         <span class="lever"></span>
-        >= 50
+        <span class="alarmText">= 50</span>
       </label>
-      <label class="pulse">
+      <label>
         <input type="checkbox">
         <span class="lever"></span>
-        >= 55
+        <span class="alarmText">>= 55</span>
       </label>
     </div>
     <div class="switch priceDown">
       <label>
         <input type="checkbox">
         <span class="lever"></span>
-        <= 40
+        <span class="alarmText"><= 40</span>
       </label>
       <label class="pulse">
         <input type="checkbox">
         <span class="lever"></span>
-        <= 5% (15m)
+        <span class="alarmText"><= 5% (15m)</span>
       </label>
     </div>
   </p>
+
   <a class="secondary-content btn-floating pulse red lighten-1">
     <i class="material-icons">notifications_active</i>
   </a>
@@ -53,7 +58,7 @@ const dataFetcher = require('../dataFetcher');
 
 module.exports = class CoinListItemController
 {
-  constructor(coinList, exchange, pairName, pairName_API, alarms)
+  constructor(coinList, exchange, pairName, pairName_API, alarms, logoSrc)
   {
     //coinListItem
     this.coinListItem = document.createElement('li');
@@ -64,29 +69,34 @@ module.exports = class CoinListItemController
 
 
     //coinListItem -> logo
-    this.logo = document.createElement('i');
-    this.logo.className = "circle green";
-    this.logo.innerHTML = pairName.substring(0, pairName.indexOf('/'));
-
+    if(logoSrc)
+    {
+      this.logo = document.createElement('img');
+      this.logo.className = "circle";
+      this.logo.setAttribute("src", logoSrc);
+    }
+    else
+    {
+      this.logo = document.createElement('i');
+      this.logo.className = "circle green";
+      this.logo.innerHTML = pairName.substring(0, pairName.indexOf('/'));
+    }
     this.coinListItem.appendChild(this.logo);
 
     //coinListItem -> coinSummary
     this.coinSummary = document.createElement('ul');
     this.coinSummary.className = "coinSummary";
-
     this.coinListItem.appendChild(this.coinSummary);
 
     //coinListItem -> alarmSection
     this.alarmSection = document.createElement('p');
-    // alarmSection.className = "";
-
+    this.alarmSection.className = "alarmSection";
     this.coinListItem.appendChild(this.alarmSection);
 
     //coinListItem -> bell
     this.bell = document.createElement('a');
     this.bell.className = "secondary-content btn-floating pulse red lighten-1 idleBell";
     this.bell.innerHTML = "<i class=\"material-icons\">notifications_active</i>";
-
     this.coinListItem.appendChild(this.bell);
 
 
@@ -131,6 +141,83 @@ module.exports = class CoinListItemController
     this.priceBarFill = document.createElement('div');
     this.priceBarFill.className = "priceBarFill";
     this.priceBar.appendChild(this.priceBarFill);
+
+
+
+
+    //coinListItem -> alarmSection -> monitorCheckboxLabel
+    this.monitorCheckboxLabel = document.createElement('label');
+    this.monitorCheckboxLabel.className = "monitorCheckboxLabel";
+    this.alarmSection.appendChild(this.monitorCheckboxLabel);
+
+    //coinListItem -> alarmSection -> editAlarmsBtn
+    this.editAlarmsBtn = document.createElement('button');
+    this.editAlarmsBtn.className = "editAlarmsBtn";
+    this.editAlarmsBtn.innerHTML = 'Edit';
+    this.alarmSection.appendChild(this.editAlarmsBtn);
+
+    //coinListItem -> alarmSection -> priceUp
+    this.priceUp = document.createElement('div');
+    this.priceUp.className = "switch priceUp";
+    this.alarmSection.appendChild(this.priceUp);
+
+    //coinListItem -> alarmSection -> priceDown
+    this.priceDown = document.createElement('div');
+    this.priceDown.className = "switch priceDown";
+    this.alarmSection.appendChild(this.priceDown);
+
+
+    //coinListItem -> alarmSection -> monitorCheckboxLabel -> monitorCheckbox
+    this.monitorCheckbox = document.createElement('input');
+    this.monitorCheckbox.className = "monitorCheckbox";
+    this.monitorCheckbox.setAttribute("type", "checkbox");
+    this.monitorCheckbox.setAttribute("checked", "checked");
+    this.monitorCheckbox.onclick = () => {this.priceUp.style.display = this.priceDown.style.display = (this.priceUp.style.display=="none"? "block": "none");};
+    this.monitorCheckboxLabel.appendChild(this.monitorCheckbox);
+
+    //coinListItem -> alarmSection -> monitorCheckboxLabel -> monitorCheckboxSpan
+    this.monitorCheckboxSpan = document.createElement('span');
+    this.monitorCheckboxSpan.innerHTML = 'Monitor';
+    this.monitorCheckboxLabel.appendChild(this.monitorCheckboxSpan);
+
+
+    //coinListItem -> alarmSection -> priceDown
+    //coinListItem -> alarmSection -> priceUp
+    this.priceUpLabels = [];
+    this.priceDownLabels = [];
+
+    if(alarms) alarms.forEach(
+      (alarm) =>
+      {
+        let priceLabel = document.createElement('label');
+
+        let priceUpCheckbox = document.createElement('input');
+        priceUpCheckbox.setAttribute("type", "checkbox");
+
+        let priceUpSpan = document.createElement('span');
+        priceUpSpan.className = "lever";
+
+        let priceUpText = document.createElement('span');
+        priceUpText.className = "alarmText";
+        priceUpText.innerHTML = alarm;
+
+        priceLabel.appendChild(priceUpCheckbox);
+        priceLabel.appendChild(priceUpSpan);
+        priceLabel.appendChild(priceUpText);
+
+
+        if(alarm.includes('>'))
+        {
+          this.priceUpLabels.push({label: priceLabel, checkbox: priceUpCheckbox, span: priceUpSpan, text: priceUpText});
+          this.priceUp.appendChild(priceLabel);
+        }
+        else if(alarm.includes('<'))
+        {
+          this.priceDownLabels.push({label: priceLabel, checkbox: priceUpCheckbox, span: priceUpSpan, text: priceUpText});
+          this.priceDown.appendChild(priceLabel);
+        }
+      }
+    );
 
 
 
