@@ -1,16 +1,11 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-const dateFormat = require('dateformat');
-
-const binanceInterface = require('./js/binanceInterface');
-const bitmaxInterface = require('./js/bitmaxInterface');
-const ftxInterface = require('./js/ftxInterface');
 
 
 
 function createWindow () {
     const win = new BrowserWindow({
-        width: 820,
-        height: 1200,
+        width: 570,
+        height: 1000,
         webPreferences: {
             contextIsolation: false,    //so that the window could access other scripts with require
             nodeIntegration: true
@@ -63,42 +58,3 @@ function openATM () {
 ipcMain.handle('openATM', (event, tradingPair) => {
     openATM();
 })
-
-
-
-
-/* ------------------ Data Fetcher ------------------ */
-
-let marketSubscriptions = [];
-
-async function fetchMarketData()
-{
-    // binanceInterface.subscribeTickerStream('btcusdt', (d)=>{console.log(d)}, ()=>{});
-
-
-    while(true)
-    {
-        console.log('test');
-
-        await delay(100);
-    }
-};
-
-app.whenReady().then(fetchMarketData);
-
-
-
-ipcMain.handle('subscribeMarketData', (event, subscription) => {
-    marketSubscriptions.push(subscription);
-})
-
-
-
-
-function delay(t, val) {
-     return new Promise(function(resolve) {
-             setTimeout(function() {
-                     resolve(val);
-             }, t);
-     });
-}

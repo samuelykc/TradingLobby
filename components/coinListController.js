@@ -21,16 +21,19 @@ module.exports = class CoinListController
 
     //coinListItem
     let pairName = 'BTC/USDT';
+    let pairName_API = 'btcusdt';
     let alarms = '';
-    let item = new CoinListItemController(this.coinList, exchange, pairName, alarms);
+    let item = new CoinListItemController(this.coinList, exchange, pairName, pairName_API, alarms);
 
     pairName = 'ETH/USDT';
+    pairName_API = 'ethusdt';
     alarms = '';
-    let item2 = new CoinListItemController(this.coinList, exchange, pairName, alarms);
+    let item2 = new CoinListItemController(this.coinList, exchange, pairName, pairName_API, alarms);
 
     pairName = 'BNB/USDT';
+    pairName_API = 'bnbusdt';
     alarms = '';
-    let item3 = new CoinListItemController(this.coinList, exchange, pairName, alarms);
+    let item3 = new CoinListItemController(this.coinList, exchange, pairName, pairName_API, alarms);
   }
 
 

@@ -18,7 +18,15 @@ select
 {
     background-color: #121a26;
 }
-
+.collection
+{
+    border: 2px solid #353949;
+    border-radius: 5px;
+}
+.collection .collection-item
+{
+    border-bottom: 1.5px solid #353949;
+}
 
 .coinSummary
 {
@@ -26,8 +34,51 @@ select
 }
 .coinSummary li
 {
+    font-size: 16px;
     display: inline-block;
-    width: 28%;
+}
+.coinSummary li.pair
+{
+    font-weight: 500;
+    width: 110px;
+}
+.coinSummary li.price
+{
+    width: 100px;
+}
+/*.coinSummary li.priceChange
+{
+    width: 300px;
+}*/
+
+.priceUp
+{
+    color: #0ecb81;
+}
+.priceDown
+{
+    color: #f6465d;
+}
+
+
+.priceBar {
+  width: 220px;
+  height: 10px;
+  border-radius: 5px;
+  background: #a1a1a1;
+  margin: 12px 5px 0px 5px;
+}
+.priceBarFill {
+  height: 10px;
+  border-radius: 5px;
+  background: #d3d3d3;
+}
+.priceLow {
+  width: 80px;
+  text-align: right;
+}
+.priceHigh {
+  width: 80px;
 }
 
 
@@ -62,6 +113,11 @@ select
 {
     display: none;
 }
+
+
+
+
+
 
 
 
@@ -112,14 +168,6 @@ select
 {
     color: white;
     font-size: 20px;
-}
-.tdBid, .tdBuy
-{
-    color: #0ecb81;
-}
-.tdAsk, .tdSell
-{
-    color: #f6465d;
 }
 .tdLastUpdate
 {
