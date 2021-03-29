@@ -46,7 +46,6 @@ async function fetchMarketData()
 
 
 
-        console.log('test');
 
         await delay(1000);
     }
@@ -61,12 +60,14 @@ fetchMarketData();
 
 
 
-function delay(t, val) {
-     return new Promise(function(resolve) {
-             setTimeout(function() {
-                     resolve(val);
-             }, t);
-     });
+function delay(t, val)
+{
+    return new Promise(
+        function(resolve)
+        {
+            setTimeout( function(){resolve(val);}, t);
+        }
+    );
 }
 
 

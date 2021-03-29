@@ -17,7 +17,7 @@ select
 .collection .collection-item.coinListItem
 {
     background-color: #121a26;
-    padding: 10px;
+    padding: 10px 5px;
 }
 .collection
 {
@@ -75,8 +75,10 @@ select
   border-radius: 5px;
   background: #d3d3d3;
 }
-.priceLow, .priceHigh {
+li.priceLow, li.priceHigh {
   width: 80px;
+  font-size: 14px;
+  color: #bbb;
 }
 .priceLow {
   text-align: right;
@@ -89,10 +91,14 @@ select
 {
     padding-top: 6px;
 }
+
+
 .monitorCheckboxLabel
 {
-    margin-left: 24px;
+    margin-left: 12px;
 }
+
+
 .editAlarmsBtn, .editAlarmsBtn:focus
 {
     float: right;
@@ -112,11 +118,16 @@ select
     background-color: #aaa;
 }
 
+
+.switch label
+{
+    margin-right: 6px;
+}
 .switch label .lever
 {
+    margin: 0 10px;
     background-color: #999999;
 }
-
 .switch.priceUp label input[type=checkbox]:checked+.lever
 {
     background-color: #81c784;
@@ -134,12 +145,64 @@ select
 {
     background-color: #f44336;
 }
+.switch.priceUp label span.alarmText
+{
+    color: #4caf50;
+}
+.switch.priceDown label span.alarmText
+{
+    color: #f44336;
+}
+
 
 
 
 .idleBell
 {
     display: none;
+}
+.activeBell, .activeBell:hover
+{
+    background: #ef5350;    /*red lighten-1*/
+}
+.missedBell, .missedBell:hover
+{
+    background: darkorange;
+}
+.collection .collection-item.avatar .idleBell,
+.collection .collection-item.avatar .activeBell,
+.collection .collection-item.avatar .missedBell
+{
+    top: 12px;
+    right: 12px;
+    
+    overflow: visible;  /*so that surrounding tooltip box could be shown*/
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+
+  background-color: #000000c4;
+  color: white;
+  text-align: center;
+  border-radius: 10px;
+  padding: 2px 12px 2px 12px;
+
+  text-align: left;
+  font-size: 18px;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+
+  /* Position the tooltip */
+  width: 200px;
+  height: auto;
+  top: -10px;
+  right: 50px;
+
+  position: absolute;
+  z-index: 1;
+}
+.tooltip:hover .tooltiptext {
+  visibility: visible;
 }
 
 
@@ -168,45 +231,6 @@ select
 
 
 
-#tableAc
-{
-    width: 70%;
-}
-#tableDiff
-{
-    width: 80%;
-}
-#tableRecord, #tableHistory
-{
-    width: 93%;
-}
-#tableAc, #tableDiff, #tableRecord, #tableHistory
-{
-    margin-left: auto;
-    margin-right: auto;
-}
-.tableDescription
-{
-    margin-left: 15%;
-}
-
-
-
-.tdClose
-{
-    color: white;
-    font-size: 20px;
-}
-.tdLastUpdate
-{
-    color: #ababab;
-    line-height: 12px
-}
-.tdTime
-{
-    width: 160px;
-}
-
 .card
 {
     background-color: #1e2a3b;
@@ -223,10 +247,6 @@ select
 .input input, .input label
 {
     color: white;
-}
-button
-{
-    margin-left: 30px;
 }
 /*#toggleTraderBtn
 {

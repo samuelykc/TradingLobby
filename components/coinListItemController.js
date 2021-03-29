@@ -46,8 +46,11 @@
     </div>
   </p>
 
-  <a class="secondary-content btn-floating pulse red lighten-1">
-    <i class="material-icons">notifications_active</i>
+  <a class="secondary-content btn-floating idleBell">
+    <i class="material-icons tooltip">
+      notifications_active
+      <span class="tooltiptext">Tooltip text</span>
+    </i>
   </a>
 </li>
 
@@ -55,6 +58,8 @@
 
 const mathExtend = require('../js/mathExtend');
 const dataFetcher = require('../dataFetcher');
+const speechManager = require('../speechManager');
+
 
 module.exports = class CoinListItemController
 {
@@ -94,10 +99,10 @@ module.exports = class CoinListItemController
     this.coinListItem.appendChild(this.alarmSection);
 
     //coinListItem -> bell
-    this.bell = document.createElement('a');
-    this.bell.className = "secondary-content btn-floating pulse red lighten-1 idleBell";
-    this.bell.innerHTML = "<i class=\"material-icons\">notifications_active</i>";
-    this.coinListItem.appendChild(this.bell);
+    let bell = document.createElement('a');
+    bell.className = "secondary-content btn-floating idleBell";  //idleBell / activeBell & pulse / missedBell
+    bell.onclick = ()=>{this.onClickBell()};
+    this.coinListItem.appendChild(bell);
 
 
 
@@ -183,41 +188,67 @@ module.exports = class CoinListItemController
 
     //coinListItem -> alarmSection -> priceDown
     //coinListItem -> alarmSection -> priceUp
-    this.priceUpLabels = [];
-    this.priceDownLabels = [];
+    this.alarmObjects = [];
 
     if(alarms) alarms.forEach(
       (alarm) =>
       {
         let priceLabel = document.createElement('label');
 
-        let priceUpCheckbox = document.createElement('input');
-        priceUpCheckbox.setAttribute("type", "checkbox");
+        let priceCheckbox = document.createElement('input');
+        priceCheckbox.setAttribute("type", "checkbox");
 
-        let priceUpSpan = document.createElement('span');
-        priceUpSpan.className = "lever";
+        let priceSpan = document.createElement('span');
+        priceSpan.className = "lever";
 
-        let priceUpText = document.createElement('span');
-        priceUpText.className = "alarmText";
-        priceUpText.innerHTML = alarm;
+        let priceText = document.createElement('span');
+        priceText.className = "alarmText";
+        priceText.innerText = alarm;
 
-        priceLabel.appendChild(priceUpCheckbox);
-        priceLabel.appendChild(priceUpSpan);
-        priceLabel.appendChild(priceUpText);
+        priceLabel.appendChild(priceCheckbox);
+        priceLabel.appendChild(priceSpan);
+        priceLabel.appendChild(priceText);
 
 
-        if(alarm.includes('>'))
+        if(alarm.startsWith('>'))
         {
-          this.priceUpLabels.push({label: priceLabel, checkbox: priceUpCheckbox, span: priceUpSpan, text: priceUpText});
           this.priceUp.appendChild(priceLabel);
         }
-        else if(alarm.includes('<'))
+        else if(alarm.startsWith('<'))
         {
-          this.priceDownLabels.push({label: priceLabel, checkbox: priceUpCheckbox, span: priceUpSpan, text: priceUpText});
           this.priceDown.appendChild(priceLabel);
         }
+
+        this.alarmObjects.push({
+          priceLabel: priceLabel, 
+          priceCheckbox: priceCheckbox, 
+          priceSpan: priceSpan, 
+          priceText: priceText,
+          isTriggering: false
+        });
       }
     );
+
+
+
+
+    //coinListItem -> bell -> icon
+    let bellIcon = document.createElement('i');
+    bellIcon.className = "material-icons tooltip";
+    bellIcon.innerText = "notifications_active";
+    bell.appendChild(bellIcon);
+
+    //coinListItem -> bell -> icon -> tooltip
+    let tooltip = document.createElement('span');
+    tooltip.className = "tooltiptext";
+    bellIcon.appendChild(tooltip);
+
+    this.bellObject = {
+      bell: bell, 
+      state: 'idleBell', 
+      tooltip: tooltip,
+      triggeredAlarms: []
+    }
 
 
 
@@ -225,24 +256,29 @@ module.exports = class CoinListItemController
   }
 
 
-  remove()
-  {
-
-  }
-
-
   /* ------------------ actions ------------------ */
   onClickBell()
   {
-    
+    //stop alarms
+    this.alarmObjects.forEach(
+      (alarm) =>
+      {
+        if(alarm.isTriggering)
+        {
+          alarm.isTriggering = false;
+          alarm.priceCheckbox.checked = false;
+        }
+      }
+    );
+
+    //reset bell
+    this.bellObject.state = 'idleBell';
+    this.bellObject.bell.className = "secondary-content btn-floating idleBell";
+
+    this.bellObject.triggeredAlarms = [];
   }
 
   onClickEditAlarm()
-  {
-    
-  }
-
-  onToggleAlarm(alarm)
   {
     
   }
@@ -252,8 +288,8 @@ module.exports = class CoinListItemController
   /* ------------------ update ------------------ */
   subscribe(pairName_API)
   {
-    let callback = (
-      function(data)
+    let callback = 
+      (data) =>
       {
         //close price
         let lastPrice = this.price.innerHTML;
@@ -293,18 +329,101 @@ module.exports = class CoinListItemController
         this.priceBarFill.style.backgroundColor = this.HSVtoRGB(priceBarFillValue*0.3,
                                                   Math.abs(priceBarFillValue - 50)/50,
                                                   0.8);
+
+
+        //alarms
+        if(this.monitorCheckbox.checked) this.checkAlarms(data);
       }
-    ).bind(this); // we call bind with the `this` value of the enclosing function
     
-
     dataFetcher.subscribeMarketData({pairName: pairName_API, callback: callback});
-    // console.log('subscribe');
   }
 
-  alarmTriggered(alarm)
+  checkAlarms(data)
   {
-    
+    let activeAlarmCount = 0;
+
+    this.alarmObjects.forEach(
+      (alarm) =>
+      {
+        if(!alarm.priceCheckbox.checked) return;
+
+        if(alarm.priceText.innerText.startsWith('>='))
+        {
+          if(alarm.priceText.innerText.includes('%'))
+          {
+
+          }
+          else
+          {
+            let targetPrice = parseFloat(alarm.priceText.innerText.replace('>=', ''));
+            alarm.isTriggering = (data.c >= targetPrice);
+
+            if(alarm.isTriggering)
+            {
+              this.alarmTriggered(data.s, alarm, targetPrice);
+              activeAlarmCount++;
+              console.log('DING DING DING!');
+            }
+          }
+        }
+        else if(alarm.priceText.innerText.startsWith('<='))
+        {
+          if(alarm.priceText.innerText.includes('%'))
+          {
+
+          }
+          else
+          {
+            let targetPrice = parseFloat(alarm.priceText.innerText.replace('<=', ''));
+            alarm.isTriggering = (data.c <= targetPrice);
+
+            if(alarm.isTriggering)
+            {
+              this.alarmTriggered(data.s, alarm, targetPrice);
+              activeAlarmCount++;
+              console.log('DING DING DING!');
+            }
+          }
+        }
+      }
+    );
+
+    this.setBell(activeAlarmCount);
   }
+
+  alarmTriggered(pair, alarm, targetPrice)
+  {
+    //speech
+    let speech = pair + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
+    speechManager.addSpeech(speech);
+
+    //bell tooltip
+    if(this.bellObject.triggeredAlarms.indexOf(alarm.priceText.innerText) == -1)    //push only if the alarm is not alraeady in tooltip
+    {
+      this.bellObject.triggeredAlarms.push(alarm.priceText.innerText);
+      this.bellObject.tooltip.innerHTML = this.bellObject.triggeredAlarms.join('<br/>');
+    }
+  }
+
+  setBell(activeAlarmCount)
+  {
+    if(activeAlarmCount > 0)
+    {
+      //bell icon
+      this.bellObject.state = 'activeBell';
+      this.bellObject.bell.className = "secondary-content btn-floating activeBell pulse";
+    }
+    else
+    {
+      if(this.bellObject.state == 'activeBell')
+      {
+        //bell icon
+        this.bellObject.state = 'missedBell';
+        this.bellObject.bell.className = "secondary-content btn-floating missedBell";
+      }
+    }
+  }
+
 
 
 
@@ -336,4 +455,3 @@ module.exports = class CoinListItemController
       // };
   }
 }
-
