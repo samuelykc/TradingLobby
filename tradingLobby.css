@@ -14,19 +14,33 @@ select
 }
 
 
-.collection .collection-item.coinListItem
+.collection .coinListContent .collection-item.coinListItem
 {
     background-color: #121a26;
     padding: 10px 5px;
+
+    border-bottom: 1.5px solid #353949;
 }
 .collection
 {
     border: 2px solid #353949;
     border-radius: 5px;
 }
-.collection .collection-item
+.collection .coinListHeader
 {
-    border-bottom: 1.5px solid #353949;
+    padding: 2px 12px;
+    display: block;
+
+    font-size: 18px;
+    color: white;
+
+    cursor: pointer;
+}
+.collection .coinListContent
+{
+    transition: max-height 0.2s ease-out;
+    max-height: 0px;
+    overflow: hidden;
 }
 
 .coinSummary
@@ -43,6 +57,11 @@ select
 {
     font-weight: 500;
     width: 110px;
+    vertical-align: top;
+}
+.coinSummary li.pair.longName
+{
+    font-size: 12px;
 }
 .coinSummary li.price
 {
@@ -175,7 +194,7 @@ li.priceLow, li.priceHigh {
 {
     top: 12px;
     right: 12px;
-    
+
     overflow: visible;  /*so that surrounding tooltip box could be shown*/
 }
 

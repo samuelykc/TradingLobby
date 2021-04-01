@@ -63,13 +63,13 @@ const speechManager = require('../speechManager');
 
 module.exports = class CoinListItemController
 {
-  constructor(coinList, exchange, pairName, pairName_API, alarms, logoSrc)
+  constructor(coinListItemRoot, exchange, pairName, pairName_API, alarms, logoSrc)
   {
     //coinListItem
     this.coinListItem = document.createElement('li');
     this.coinListItem.className = "collection-item avatar coinListItem";
 
-    coinList.appendChild(this.coinListItem);
+    coinListItemRoot.appendChild(this.coinListItem);
 
 
 
@@ -109,7 +109,7 @@ module.exports = class CoinListItemController
 
     //coinListItem -> coinSummary -> pair
     this.pair = document.createElement('li');
-    this.pair.className = "pair";
+    this.pair.className = "pair" + (pairName.length>10? " longName": "");
     this.pair.innerHTML = pairName;
     this.coinSummary.appendChild(this.pair);
 
