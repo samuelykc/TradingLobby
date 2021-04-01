@@ -32,19 +32,27 @@ async function fetchMarketData()
             {
                 if(!subscription.tickerStream)
                 {
-                    console.log('assigning tickerStream to '+subscription.pairName);
+                    console.log('assigning tickerStream to ('+subscription.exchange+') '+subscription.pairName);
                     
-                    binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
-                                                                subscription.callback, 
-                                                                () => { subscription.tickerStream = false; });
+                    if(subscription.exchange == "Binance")
+                    {
+                        binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
+                                                                    subscription.callback, 
+                                                                    () => { subscription.tickerStream = false; });
+                    }
+                    else if(subscription.exchange == "FTX")
+                    {
+                        ftxInterface.subscribeFakeMiniTickerStream(subscription.pairName, 
+                                                                    subscription.callback, 
+                                                                    () => { subscription.tickerStream = false; });
+                    }
 
                     subscription.tickerStream = true;
+
                     //TODO: tickerStream should be shared by subscriptions with same concern
                 }
             }
         );
-
-
 
 
         await delay(1000);

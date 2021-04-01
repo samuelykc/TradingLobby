@@ -252,7 +252,7 @@ module.exports = class CoinListItemController
 
 
 
-    this.subscribe(pairName_API);
+    this.subscribe(exchange, pairName_API);
   }
 
 
@@ -286,7 +286,7 @@ module.exports = class CoinListItemController
 
 
   /* ------------------ update ------------------ */
-  subscribe(pairName_API)
+  subscribe(exchange, pairName_API)
   {
     let callback = 
       (data) =>
@@ -333,9 +333,9 @@ module.exports = class CoinListItemController
 
         //alarms
         if(this.monitorCheckbox.checked) this.checkAlarms(data);
-      }
+      };
     
-    dataFetcher.subscribeMarketData({pairName: pairName_API, callback: callback});
+    dataFetcher.subscribeMarketData({exchange: exchange, pairName: pairName_API, callback: callback});
   }
 
   checkAlarms(data)
