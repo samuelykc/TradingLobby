@@ -42,7 +42,7 @@ module.exports = class CoinListController
 
     list.items.forEach((item)=>{
       this.coinListItems.push(
-        new CoinListItemController(this.coinListContent, list.exchange, item.pairName, item.pairName_API, item.alarms, item.logoSrc)
+        new CoinListItemController(this.coinListContent, list.exchange, item)
       );
     });
 

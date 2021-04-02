@@ -51,6 +51,8 @@ function coinListsConfigFileLoadCallback(c)
 
 function coinListsSave()
 {
+  config.coinLists.forEach(function(list) { list.items.forEach(function(item) { console.log("item.monitor: "+item.monitor) }) })
+
   const coinListsConfigFileDir = dataDir+coinListsConfigFile;
 
   fileIOInterface.writeJSONSync(coinListsConfigFileDir, config);

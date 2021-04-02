@@ -69,7 +69,7 @@ exchangeTradeURL["FTX"] = "https://ftx.com/trade/";
 
 module.exports = class CoinListItemController
 {
-  constructor(coinListItemRoot, exchange, pairName, pairName_API, alarms, logoSrc)
+  constructor(coinListItemRoot, exchange, item)
   {
     //coinListItem
     this.coinListItem = document.createElement('li');
@@ -81,7 +81,7 @@ module.exports = class CoinListItemController
 
     //coinListItem -> logoLink
     this.logoLink = document.createElement('a');
-    this.logoLink.setAttribute("href", exchangeTradeURL[exchange] + pairName_API);
+    this.logoLink.setAttribute("href", exchangeTradeURL[exchange] + item.pairName_API);
     this.logoLink.setAttribute("target", "_blank");
     this.coinListItem.appendChild(this.logoLink);
 
@@ -105,17 +105,17 @@ module.exports = class CoinListItemController
 
 
     //coinListItem -> logoLink -> logo
-    if(logoSrc)
+    if(item.logoSrc)
     {
       this.logo = document.createElement('img');
       this.logo.className = "circle";
-      this.logo.setAttribute("src", logoSrc);
+      this.logo.setAttribute("src", item.logoSrc);
     }
     else
     {
       this.logo = document.createElement('i');
       this.logo.className = "circle green";
-      this.logo.innerHTML = pairName.substring(0, pairName.indexOf('/'));
+      this.logo.innerHTML = item.pairName.substring(0, item.pairName.indexOf('/'));
     }
     this.logoLink.appendChild(this.logo);
 
@@ -124,8 +124,8 @@ module.exports = class CoinListItemController
 
     //coinListItem -> coinSummary -> pair
     this.pair = document.createElement('li');
-    this.pair.className = "pair" + (pairName.length>10? " longName": "");
-    this.pair.innerHTML = pairName;
+    this.pair.className = "pair" + (item.pairName.length>10? " longName": "");
+    this.pair.innerHTML = item.pairName;
     this.coinSummary.appendChild(this.pair);
 
     //coinListItem -> coinSummary -> price
@@ -186,13 +186,18 @@ module.exports = class CoinListItemController
     this.priceDown.className = "switch priceDown";
     this.alarmSection.appendChild(this.priceDown);
 
-
     //coinListItem -> alarmSection -> monitorCheckboxLabel -> monitorCheckbox
     this.monitorCheckbox = document.createElement('input');
     this.monitorCheckbox.className = "monitorCheckbox";
     this.monitorCheckbox.setAttribute("type", "checkbox");
-    this.monitorCheckbox.setAttribute("checked", "checked");
-    this.monitorCheckbox.onclick = () => {this.priceUp.style.display = this.priceDown.style.display = (this.priceUp.style.display=="none"? "block": "none");};
+    this.monitorCheckbox.checked = item.monitor;
+    this.monitorCheckbox.addEventListener('change', (event) => {
+        this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
+        item.monitor = this.monitorCheckbox.checked;
+        console.log(item.checked);
+      }
+    )
+    this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
     this.monitorCheckboxLabel.appendChild(this.monitorCheckbox);
 
     //coinListItem -> alarmSection -> monitorCheckboxLabel -> monitorCheckboxSpan
@@ -205,7 +210,7 @@ module.exports = class CoinListItemController
     //coinListItem -> alarmSection -> priceUp
     this.alarmObjects = [];
 
-    if(alarms) alarms.forEach(
+    if(item.alarms) item.alarms.forEach(
       (alarm) =>
       {
         let priceLabel = document.createElement('label');
@@ -273,7 +278,7 @@ module.exports = class CoinListItemController
 
 
 
-    this.subscribe(exchange, pairName_API);
+    this.subscribe(exchange, item.pairName_API);
   }
 
 
