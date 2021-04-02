@@ -8,7 +8,7 @@ const dataDir = "data/";
 fileIOInterface.makeDirSync(dataDir);
 
 const coinListsConfigFile = "coinListsConfig.txt";
-let coinLists = [];
+let config = {};
 
 
 let coinListRoot;
@@ -21,11 +21,15 @@ window.onload = function()
 {
   coinListRoot = document.getElementById("coinListRoot");
 
-  // let list = new CoinListController(coinListRoot, 'Binance');
-
   //load data
   coinListsLoad();
 };
+
+window.onbeforeunload = (e) => {
+  //save data
+  coinListsSave();
+}
+
 
 
 
@@ -33,17 +37,23 @@ window.onload = function()
 
 function coinListsLoad()
 {
-  let coinListsConfigFileDir = dataDir+coinListsConfigFile;
+  const coinListsConfigFileDir = dataDir+coinListsConfigFile;
 
   if(fileIOInterface.checkDirSync(coinListsConfigFileDir))
     fileIOInterface.readJSONSync(coinListsConfigFileDir, coinListsConfigFileLoadCallback);
 }
-
-function coinListsConfigFileLoadCallback(config)
+function coinListsConfigFileLoadCallback(c)
 {
-    coinLists = config.coinLists;
+  config = c;
 
-    coinLists.forEach(function(list) { coinLists_UI.push(new CoinListController(coinListRoot, list)); })
+  config.coinLists.forEach(function(list) { coinLists_UI.push(new CoinListController(coinListRoot, list)); })
+}
+
+function coinListsSave()
+{
+  const coinListsConfigFileDir = dataDir+coinListsConfigFile;
+
+  fileIOInterface.writeJSONSync(coinListsConfigFileDir, config);
 }
 
 

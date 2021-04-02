@@ -74,6 +74,8 @@ let activeFetchCandlesAsStream = {};    //only support 1 stream instance for eac
 async function fetchCandlesAsStream(market_name)  //fetch candles continuosly and callback like a stream would
 {
     let data = {};
+
+    data.s = market_name.replace('/', '');
     data.c = data.o = data.h = data.l = -1;
 
     let getCandlesRespondHandled = true;
@@ -85,7 +87,7 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
     while(activeFetchCandlesAsStream[market_name].run)
     {
         //retrieve new data if last respond was handled already
-        if(getCandlesRespondHandled)    //not using the close price of the last candle since the number seems wrong
+        if(getCandlesRespondHandled)
         {
             getCandlesRespondHandled = false;
 
@@ -106,10 +108,11 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
                             if(item.low<low) low = item.low;
                         });
 
-                        if(/*close!=data.c || */open!=data.o || high!=data.h || low!=data.l)    //callback onmessage() if data changed
+                        //update data & callback onmessage() if data changed
+                        if(/*close!=data.c || */open!=data.o || high!=data.h || low!=data.l)    //not using the close price of the last candle since the number seems wrong
                         {
                             /*data.c=close; */data.o=open; data.h=high; data.l=low;
-                            activeFetchCandlesAsStream[market_name].onmessage(data);
+                            if(data.c >= 0) activeFetchCandlesAsStream[market_name].onmessage(data);    //call only when all data ready
                         }
                     }
 
@@ -132,10 +135,11 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
                         let high = (respond.result.last>data.h? respond.result.last: data.h);
                         let low = (respond.result.last<data.l? respond.result.last: data.l);
 
-                        if(close!=data.c || high!=data.h || low!=data.l)    //callback onmessage() if data changed
+                        //update data & callback onmessage() if data changed
+                        if(close!=data.c || high!=data.h || low!=data.l)
                         {
                             data.c=close; data.h=high; data.l=low;
-                            activeFetchCandlesAsStream[market_name].onmessage(data);
+                            if(data.o >= 0) activeFetchCandlesAsStream[market_name].onmessage(data);    //call only when all data ready
                         }
                     }
 

@@ -29,7 +29,7 @@ module.exports = {
 
     writeJSONSync(filename, json)
     {
-        let data = JSON.stringify(json);
+        let data = JSON.stringify(json, null, 2);
         fs.writeFileSync(filename, data);
     },
 

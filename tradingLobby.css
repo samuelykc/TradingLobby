@@ -127,6 +127,8 @@ li.priceLow, li.priceHigh {
     border: none;
     border-radius: 4px;
     background-color: #b2b2b2;
+
+    cursor: pointer;
 }
 .editAlarmsBtn:hover
 {

@@ -24,8 +24,12 @@ module.exports = {
     // Shift back
     value = value.toString().split('e');
     return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
-  }
+  },
 
+  countDecimals(value) {
+    if(Math.floor(value) === value) return 0;
+    return value.toString().split(".")[1].length || 0; 
+  }
 };
 
 Math.round10 = function(value, exp) {

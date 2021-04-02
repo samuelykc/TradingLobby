@@ -197,29 +197,35 @@ module.exports = class CoinListItemController
 
         let priceCheckbox = document.createElement('input');
         priceCheckbox.setAttribute("type", "checkbox");
+        priceCheckbox.checked = alarm.checked;
+        priceCheckbox.addEventListener('change', (event) => {
+            alarm.checked = priceCheckbox.checked;
+          }
+        )
 
         let priceSpan = document.createElement('span');
         priceSpan.className = "lever";
 
         let priceText = document.createElement('span');
         priceText.className = "alarmText";
-        priceText.innerText = alarm;
+        priceText.innerText = alarm.condition;
 
         priceLabel.appendChild(priceCheckbox);
         priceLabel.appendChild(priceSpan);
         priceLabel.appendChild(priceText);
 
 
-        if(alarm.startsWith('>'))
+        if(alarm.condition.startsWith('>'))
         {
           this.priceUp.appendChild(priceLabel);
         }
-        else if(alarm.startsWith('<'))
+        else if(alarm.condition.startsWith('<'))
         {
           this.priceDown.appendChild(priceLabel);
         }
 
         this.alarmObjects.push({
+          alarmDataRef: alarm,
           priceLabel: priceLabel, 
           priceCheckbox: priceCheckbox, 
           priceSpan: priceSpan, 
@@ -261,12 +267,13 @@ module.exports = class CoinListItemController
   {
     //stop alarms
     this.alarmObjects.forEach(
-      (alarm) =>
+      (alarmObject) =>
       {
-        if(alarm.isTriggering)
+        if(alarmObject.isTriggering)
         {
-          alarm.isTriggering = false;
-          alarm.priceCheckbox.checked = false;
+          alarmObject.isTriggering = false;
+          alarmObject.priceCheckbox.checked = false;
+          alarmObject.alarmDataRef.checked = false;
         }
       }
     );
@@ -291,6 +298,9 @@ module.exports = class CoinListItemController
     let callback = 
       (data) =>
       {
+        let lastLow = parseFloat(this.priceLow.innerHTML);
+        let lastHigh = parseFloat(this.priceHigh.innerHTML);
+
         //close price
         let lastPrice = this.price.innerHTML;
         let newPrice = parseFloat(data.c).toString();
@@ -309,7 +319,7 @@ module.exports = class CoinListItemController
 
         //24h Change
         let priceChangePercent = mathExtend.decimalAdjust('round', ((data.c/data.o)-1)*100.0, -2);
-        let priceChangeAmount = mathExtend.decimalAdjust('round', data.c-data.o, -4);
+        let priceChangeAmount = mathExtend.decimalAdjust('round', data.c-data.o, -Math.max(mathExtend.countDecimals(data.c), mathExtend.countDecimals(data.o)));
         let priceChangeSign = (priceChangeAmount>0? '+': '');
 
         //24h Change UI
@@ -332,13 +342,13 @@ module.exports = class CoinListItemController
 
 
         //alarms
-        if(this.monitorCheckbox.checked) this.checkAlarms(data);
+        if(this.monitorCheckbox.checked) this.checkAlarms(data, lastLow, lastHigh);
       };
     
     dataFetcher.subscribeMarketData({exchange: exchange, pairName: pairName_API, callback: callback});
   }
 
-  checkAlarms(data)
+  checkAlarms(data, lastLow, lastHigh)
   {
     let activeAlarmCount = 0;
 
@@ -353,6 +363,17 @@ module.exports = class CoinListItemController
           {
 
           }
+          else if(alarm.priceText.innerText.includes('high'))
+          {
+            alarm.isTriggering = (data.h > lastHigh || data.c >= lastHigh);
+
+            if(alarm.isTriggering)
+            {
+              let speech = data.s.split("").join(" ") + ' hits the top';
+              this.alarmTriggered(alarm, speech);
+              activeAlarmCount++;
+            }
+          }
           else
           {
             let targetPrice = parseFloat(alarm.priceText.innerText.replace('>=', ''));
@@ -360,9 +381,10 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              this.alarmTriggered(data.s, alarm, targetPrice);
+              // let speech = data.s + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
+              let speech = data.s.split("").join(" ") + ' above ' + targetPrice;
+              this.alarmTriggered(alarm, speech);
               activeAlarmCount++;
-              console.log('DING DING DING!');
             }
           }
         }
@@ -372,6 +394,17 @@ module.exports = class CoinListItemController
           {
 
           }
+          else if(alarm.priceText.innerText.includes('low'))
+          {
+            alarm.isTriggering = (data.l < lastLow || data.c <= lastLow);
+
+            if(alarm.isTriggering)
+            {
+              let speech = data.s.split("").join(" ") + ' hits the bottom';
+              this.alarmTriggered(alarm, speech);
+              activeAlarmCount++;
+            }
+          }
           else
           {
             let targetPrice = parseFloat(alarm.priceText.innerText.replace('<=', ''));
@@ -379,9 +412,10 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              this.alarmTriggered(data.s, alarm, targetPrice);
+              // let speech = data.s + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
+              let speech = data.s.split("").join(" ") + ' below ' + targetPrice;
+              this.alarmTriggered(alarm, speech);
               activeAlarmCount++;
-              console.log('DING DING DING!');
             }
           }
         }
@@ -391,10 +425,9 @@ module.exports = class CoinListItemController
     this.setBell(activeAlarmCount);
   }
 
-  alarmTriggered(pair, alarm, targetPrice)
+  alarmTriggered(alarm, speech)
   {
     //speech
-    let speech = pair + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
     speechManager.addSpeech(speech);
 
     //bell tooltip
