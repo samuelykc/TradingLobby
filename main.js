@@ -13,6 +13,12 @@ function createWindow () {
     })
 
     win.loadFile('tradingLobby.html')
+
+    //use OS default broswer to open new windows
+    win.webContents.on('new-window', function(e, url) {
+      e.preventDefault();
+      require('electron').shell.openExternal(url);
+    });
 }
 
 app.whenReady().then(createWindow)
