@@ -61,16 +61,25 @@
 const mathExtend = require('../js/mathExtend');
 const dataFetcher = require('../dataFetcher');
 const speechManager = require('../speechManager');
+const ModalBox = require('./ModalBox');
 
 let exchangeTradeURL = {};
 exchangeTradeURL["Binance"] = "https://www.binance.com/en/trade/";
 exchangeTradeURL["FTX"] = "https://ftx.com/trade/";
+
+let alarmEditBox;   //common alarm edit box shared across CoinListItemController
+
 
 
 module.exports = class CoinListItemController
 {
   constructor(coinListItemRoot, exchange, item)
   {
+    //create alarmEditBox if not exist
+    if(!alarmEditBox) alarmEditBox = new ModalBox(document.body);
+
+
+
     //coinListItem
     this.coinListItem = document.createElement('li');
     this.coinListItem.className = "collection-item avatar coinListItem";
@@ -174,6 +183,7 @@ module.exports = class CoinListItemController
     this.editAlarmsBtn = document.createElement('button');
     this.editAlarmsBtn.className = "editAlarmsBtn";
     this.editAlarmsBtn.innerHTML = 'Edit';
+    this.editAlarmsBtn.onclick = ()=>{this.onClickEditAlarms()};
     this.alarmSection.appendChild(this.editAlarmsBtn);
 
     //coinListItem -> alarmSection -> priceUp
@@ -194,7 +204,6 @@ module.exports = class CoinListItemController
     this.monitorCheckbox.addEventListener('change', (event) => {
         this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
         item.monitor = this.monitorCheckbox.checked;
-        console.log(item.checked);
       }
     )
     this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
@@ -208,52 +217,10 @@ module.exports = class CoinListItemController
 
     //coinListItem -> alarmSection -> priceDown
     //coinListItem -> alarmSection -> priceUp
+    this.alarmData = item.alarms;
     this.alarmObjects = [];
+    this.reprintAlarmObjects();
 
-    if(item.alarms) item.alarms.forEach(
-      (alarm) =>
-      {
-        let priceLabel = document.createElement('label');
-
-        let priceCheckbox = document.createElement('input');
-        priceCheckbox.setAttribute("type", "checkbox");
-        priceCheckbox.checked = alarm.checked;
-        priceCheckbox.addEventListener('change', (event) => {
-            alarm.checked = priceCheckbox.checked;
-          }
-        )
-
-        let priceSpan = document.createElement('span');
-        priceSpan.className = "lever";
-
-        let priceText = document.createElement('span');
-        priceText.className = "alarmText";
-        priceText.innerText = alarm.condition;
-
-        priceLabel.appendChild(priceCheckbox);
-        priceLabel.appendChild(priceSpan);
-        priceLabel.appendChild(priceText);
-
-
-        if(alarm.condition.startsWith('>'))
-        {
-          this.priceUp.appendChild(priceLabel);
-        }
-        else if(alarm.condition.startsWith('<'))
-        {
-          this.priceDown.appendChild(priceLabel);
-        }
-
-        this.alarmObjects.push({
-          alarmDataRef: alarm,
-          priceLabel: priceLabel, 
-          priceCheckbox: priceCheckbox, 
-          priceSpan: priceSpan, 
-          priceText: priceText,
-          isTriggering: false
-        });
-      }
-    );
 
 
 
@@ -305,9 +272,123 @@ module.exports = class CoinListItemController
     this.bellObject.triggeredAlarms = [];
   }
 
-  onClickEditAlarm()
+  onClickEditAlarms()
   {
-    
+    this.reprintAlarmInputs();
+    alarmEditBox.show();
+  }
+
+  reprintAlarmObjects()   //those toggle buttons
+  {
+    //clear printed alarmObjects
+    this.alarmObjects = [];
+    this.priceUp.innerHTML = "";
+    this.priceDown.innerHTML = "";
+
+    //print alarmObjects
+    if(this.alarmData) this.alarmData.forEach(
+      (alarm) =>
+      {
+        let priceLabel = document.createElement('label');
+
+        let priceCheckbox = document.createElement('input');
+        priceCheckbox.setAttribute("type", "checkbox");
+        priceCheckbox.checked = alarm.checked;
+        priceCheckbox.addEventListener('change', (event) => {
+            alarm.checked = priceCheckbox.checked;
+          }
+        )
+
+        let priceSpan = document.createElement('span');
+        priceSpan.className = "lever";
+
+        let priceText = document.createElement('span');
+        priceText.className = "alarmText";
+        priceText.innerText = alarm.condition;
+
+        priceLabel.appendChild(priceCheckbox);
+        priceLabel.appendChild(priceSpan);
+        priceLabel.appendChild(priceText);
+
+
+        //add to UI
+        if(alarm.condition.startsWith('>'))
+        {
+          this.priceUp.appendChild(priceLabel);
+        }
+        else if(alarm.condition.startsWith('<'))
+        {
+          this.priceDown.appendChild(priceLabel);
+        }
+
+        //add to array
+        this.alarmObjects.push({
+          alarmDataRef: alarm,
+          priceLabel: priceLabel, 
+          priceCheckbox: priceCheckbox, 
+          priceSpan: priceSpan, 
+          priceText: priceText,
+          isTriggering: false
+        });
+      }
+    );
+  }
+
+  reprintAlarmInputs()    //those input boxes
+  {
+    let modalContent = document.createElement("div");
+
+    //print addAlarmBtn
+    let addAlarmBtn = document.createElement('button');
+    addAlarmBtn.innerHTML = "<i class=\"material-icons\">add</i>";
+    addAlarmBtn.className = "btn addAlarmBtn";
+    addAlarmBtn.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:""});
+      this.reprintAlarmInputs();
+    };
+    modalContent.appendChild(addAlarmBtn);
+
+    //print alarm input boxes
+    if(this.alarmData) this.alarmData.forEach(
+      (alarm) =>
+      {
+        let alarmInput = document.createElement('input');
+        alarmInput.value = alarm.condition;
+        alarmInput.placeholder = "Condition";
+        alarmInput.className = alarm.condition.startsWith(">")? "alarmInput priceUp": 
+                               alarm.condition.startsWith("<")? "alarmInput priceDown": "alarmInput";
+
+        alarmInput.addEventListener('change', (event) => {
+            alarm.condition = alarmInput.value;
+            this.alarmData.sort((a, b)=>
+              {
+                //sort by sign
+                if(a.condition.startsWith(">=") && b.condition.startsWith("<=")) return -1;
+                if(a.condition.startsWith("<=") && b.condition.startsWith(">=")) return 1;
+
+                let a_value = parseFloat(a.condition.replace('>=', '').replace('<=', ''));
+                let b_value = parseFloat(b.condition.replace('>=', '').replace('<=', ''));
+                
+                //sort text to front (high/low)
+                if(!a_value && b_value) return -1;
+                if(!b_value && a_value) return 1;
+                
+                //sort by value
+                if(a_value && b_value) return ((a_value<b_value)? -1: 1);   //numeric
+                else return ((a.condition<b.condition)? -1: 1)  //text
+              }
+            );
+            this.reprintAlarmInputs();
+          }
+        )
+
+        modalContent.appendChild(alarmInput);
+      }
+    );
+
+    alarmEditBox.setContent(modalContent);
+    alarmEditBox.setOnCloseCB(()=>{this.reprintAlarmObjects();});
+             //TODO: change only if changed
   }
 
 

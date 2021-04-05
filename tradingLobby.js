@@ -1,5 +1,8 @@
 const { ipcRenderer } = require('electron');
+
 const CoinListController = require('./components/coinListController');
+const ModalBox = require('./components/ModalBox');
+
 const fileIOInterface = require('./js/fileIOInterface');
 
 
@@ -64,5 +67,5 @@ function coinListsSave()
 
 async function openATM()
 {
-    ipcRenderer.invoke('openATM', 'BNB/USDT')
+  ipcRenderer.invoke('openATM', 'BNB/USDT');
 }
