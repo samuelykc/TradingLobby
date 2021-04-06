@@ -1,7 +1,10 @@
 /*
 
 <ul class="collection coinList">
-  <div class="coinListHeader">Binance</div>
+  <div class="coinListHeader">
+    <div class="coinListHeaderText">Binance</div>
+    <div class="coinListHeaderPercent priceUp">+4.83%</div>
+  </div>
   
   <div class="coinListContent">
     <li class="collection-item avatar coinListItem">...</li>

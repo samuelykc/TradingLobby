@@ -338,15 +338,11 @@ module.exports = class CoinListItemController
   {
     let modalContent = document.createElement("div");
 
-    //print addAlarmBtn
-    let addAlarmBtn = document.createElement('button');
-    addAlarmBtn.innerHTML = "<i class=\"material-icons\">add</i>";
-    addAlarmBtn.className = "btn addAlarmBtn light-green darken-1";
-    addAlarmBtn.onclick = ()=>{
-      this.alarmData.push({checked: "true", condition:""});
-      this.reprintAlarmInputs();
-    };
-    modalContent.appendChild(addAlarmBtn);
+    //print title
+    let editAlarmTitle = document.createElement('h5');
+    editAlarmTitle.innerText = this.pair.innerText + " alarms";
+    editAlarmTitle.className = "editAlarmTitle";
+    modalContent.appendChild(editAlarmTitle);
 
     //print alarm input boxes
     if(this.alarmData) this.alarmData.forEach(
@@ -382,13 +378,33 @@ module.exports = class CoinListItemController
           }
         )
 
+
+        let removeAlarmBtn = document.createElement('button');
+        removeAlarmBtn.innerHTML = "<i class=\"material-icons\">remove</i>";
+        removeAlarmBtn.className = "btn removeAlarmBtn red lighten-2";
+        removeAlarmBtn.onclick = ()=>{
+          this.alarmData.splice(this.alarmData.indexOf(alarm), 1);
+          this.reprintAlarmInputs();
+        };
+
+
+        modalContent.appendChild(removeAlarmBtn);
         modalContent.appendChild(alarmInput);
       }
     );
 
+    //print addAlarmBtn
+    let addAlarmBtn = document.createElement('button');
+    addAlarmBtn.innerHTML = "<i class=\"material-icons\">add</i>";
+    addAlarmBtn.className = "btn addAlarmBtn light-green darken-1";
+    addAlarmBtn.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:""});
+      this.reprintAlarmInputs();
+    };
+    modalContent.appendChild(addAlarmBtn);
+
     alarmEditBox.setContent(modalContent);
-    alarmEditBox.setOnCloseCB(()=>{this.reprintAlarmObjects();});
-             //TODO: change only if changed
+    alarmEditBox.setOnCloseCB(()=>{this.reprintAlarmObjects();});   //TODO: change only if changed
   }
 
 
@@ -457,6 +473,8 @@ module.exports = class CoinListItemController
       {
         if(!alarm.priceCheckbox.checked) return;
 
+        let speech = "";
+
         if(alarm.priceText.innerText.startsWith('>='))
         {
           if(alarm.priceText.innerText.includes('%'))
@@ -469,9 +487,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              let speech = data.s.split("").join(" ") + ' hits the top';
-              this.alarmTriggered(alarm, speech);
-              activeAlarmCount++;
+              speech = this.formatPairNameForSpeech(data.s) + ' hits the top';
             }
           }
           else
@@ -481,10 +497,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              // let speech = data.s + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
-              let speech = data.s.split("").join(" ") + ' above ' + targetPrice;
-              this.alarmTriggered(alarm, speech);
-              activeAlarmCount++;
+              speech = this.formatPairNameForSpeech(data.s) + ' above ' + targetPrice;
             }
           }
         }
@@ -500,9 +513,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              let speech = data.s.split("").join(" ") + ' hits the bottom';
-              this.alarmTriggered(alarm, speech);
-              activeAlarmCount++;
+              speech = this.formatPairNameForSpeech(data.s) + ' hits the bottom';
             }
           }
           else
@@ -512,17 +523,29 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              // let speech = data.s + (alarm.priceText.innerText.startsWith('>=')? 'above': 'below') + targetPrice;
-              let speech = data.s.split("").join(" ") + ' below ' + targetPrice;
-              this.alarmTriggered(alarm, speech);
-              activeAlarmCount++;
+              speech = this.formatPairNameForSpeech(data.s) + ' below ' + targetPrice;
             }
           }
+        }
+
+        if(alarm.isTriggering)
+        {
+          this.alarmTriggered(alarm, speech);
+          activeAlarmCount++;
         }
       }
     );
 
     this.setBell(activeAlarmCount);
+  }
+
+  formatPairNameForSpeech(pairName)
+  {
+    return pairName.split("").join(" ")   //break into letters
+                   .replace("U P", "up")  //recompose common words
+                   .replace("D O W N", "down")
+                   .replace("B U L L", "bull")
+                   .replace("B E A R", "bear")
   }
 
   alarmTriggered(alarm, speech)
