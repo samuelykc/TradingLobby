@@ -11,6 +11,7 @@
 
 */
 
+const mathExtend = require('../js/mathExtend');
 const CoinListItemController = require('./coinListItemController');
 
 module.exports = class CoinListController
@@ -26,9 +27,20 @@ module.exports = class CoinListController
     //coinListHeader
     this.coinListHeader = document.createElement('div');
     this.coinListHeader.className = "coinListHeader";
-    this.coinListHeader.innerHTML = list.header;
     this.coinListHeader.onclick = () => {this.onClickHeader()};
     this.coinList.appendChild(this.coinListHeader);
+
+    //coinListHeaderText
+    this.coinListHeaderText = document.createElement('div');
+    this.coinListHeaderText.className = "coinListHeaderText";
+    this.coinListHeaderText.innerHTML = list.header;
+    this.coinListHeader.appendChild(this.coinListHeaderText);
+
+    //coinListHeaderPercent
+    this.coinListHeaderPercent = document.createElement('div');
+    this.coinListHeaderPercent.className = "coinListHeaderPercent";
+    this.coinListHeader.appendChild(this.coinListHeaderPercent);
+
 
 
     //coinListContent
@@ -39,10 +51,31 @@ module.exports = class CoinListController
 
     //coinListItem
     this.coinListItems = [];
+    this.coinListItemsPriceChangePercent = [];
+    let itemIndex = 0;
+
+    let onItemPriceChangePercent = (itemIndex, percent)=>
+    {
+      //store data
+      this.coinListItemsPriceChangePercent[itemIndex] = percent;
+
+      //set group PriceChangePercent if all items have data returned
+      if(this.coinListItemsPriceChangePercent.length < this.coinListItems.length) return;
+
+      let percentSum = 0.0;
+      this.coinListItemsPriceChangePercent.forEach((percent)=>{
+        if(!percent) return;
+        percentSum += percent;
+      });
+
+      this.coinListHeaderPercent.innerHTML = (percentSum>0? '+': '') + mathExtend.decimalAdjust('round', percentSum / this.coinListItems.length, -2) + "%";
+      this.coinListHeaderPercent.className = "coinListHeaderPercent" + (percentSum>0? " priceUp":
+                                                                        (percentSum<0? " priceDown" : ""));
+    }
 
     list.items.forEach((item)=>{
       this.coinListItems.push(
-        new CoinListItemController(this.coinListContent, list.exchange, item)
+        new CoinListItemController(this.coinListContent, list.exchange, item, onItemPriceChangePercent, itemIndex++)
       );
     });
 
@@ -79,11 +112,6 @@ module.exports = class CoinListController
   }
 
   onRemoveCoinListItem()
-  {
-    
-  }
-
-  onToggleListAlarms()
   {
     
   }

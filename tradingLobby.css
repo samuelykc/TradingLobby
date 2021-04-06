@@ -29,12 +29,20 @@ select
 .collection .coinListHeader
 {
     padding: 2px 12px;
-    display: block;
 
     font-size: 18px;
     color: white;
 
     cursor: pointer;
+}
+.collection .coinListHeader .coinListHeaderText
+{
+    display: inline;
+}
+.collection .coinListHeader .coinListHeaderPercent
+{
+    display: inline;
+    float: right;
 }
 .collection .coinListContent
 {

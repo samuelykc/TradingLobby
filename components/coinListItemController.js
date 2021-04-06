@@ -73,7 +73,7 @@ let alarmEditBox;   //common alarm edit box shared across CoinListItemController
 
 module.exports = class CoinListItemController
 {
-  constructor(coinListItemRoot, exchange, item)
+  constructor(coinListItemRoot, exchange, item, priceChangePercentCB, itemIndex)
   {
     //create alarmEditBox if not exist
     if(!alarmEditBox) alarmEditBox = new ModalBox(document.body);
@@ -245,7 +245,7 @@ module.exports = class CoinListItemController
 
 
 
-    this.subscribe(exchange, item.pairName_API);
+    this.subscribe(exchange, item.pairName_API, priceChangePercentCB, itemIndex);
   }
 
 
@@ -341,7 +341,7 @@ module.exports = class CoinListItemController
     //print addAlarmBtn
     let addAlarmBtn = document.createElement('button');
     addAlarmBtn.innerHTML = "<i class=\"material-icons\">add</i>";
-    addAlarmBtn.className = "btn addAlarmBtn";
+    addAlarmBtn.className = "btn addAlarmBtn light-green darken-1";
     addAlarmBtn.onclick = ()=>{
       this.alarmData.push({checked: "true", condition:""});
       this.reprintAlarmInputs();
@@ -394,7 +394,7 @@ module.exports = class CoinListItemController
 
 
   /* ------------------ update ------------------ */
-  subscribe(exchange, pairName_API)
+  subscribe(exchange, pairName_API, priceChangePercentCB, itemIndex)
   {
     let callback = 
       (data) =>
@@ -408,26 +408,25 @@ module.exports = class CoinListItemController
 
         //close price UI
         this.price.innerHTML = newPrice;
-        if(lastPrice && lastPrice!=newPrice)
+        if(lastPrice)
         {
-          this.price.className = parseFloat(newPrice)>parseFloat(lastPrice)? "price priceUp" : "price priceDown";
-        }
-        else
-        {
-          this.price.className = "price";
+          this.price.className = "price" + (parseFloat(newPrice)>parseFloat(lastPrice)? " priceUp":
+                                            (parseFloat(newPrice)<parseFloat(lastPrice)? " priceDown" : ""));
         }
 
 
         //24h Change
-        let priceChangePercent = mathExtend.decimalAdjust('round', ((data.c/data.o)-1)*100.0, -2);
+        let priceChangePercent = ((data.c/data.o)-1)*100.0;
+        let priceChangePercentRounded = mathExtend.decimalAdjust('round', priceChangePercent, -2);
         let priceChangeAmount = mathExtend.decimalAdjust('round', data.c-data.o, -Math.max(mathExtend.countDecimals(data.c), mathExtend.countDecimals(data.o)));
         let priceChangeSign = (priceChangeAmount>0? '+': '');
 
         //24h Change UI
-        this.priceChange.innerHTML = priceChangeSign + priceChangePercent + '% ('+
+        this.priceChange.innerHTML = priceChangeSign + priceChangePercentRounded + '% ('+
                                     priceChangeSign + priceChangeAmount +')';
         this.priceChange.className = (data.c==data.o? 'priceChange' :
                                       data.c>data.o? "priceChange priceUp" : "priceChange priceDown");
+        priceChangePercentCB(itemIndex, priceChangePercent);  //for CoinListController
 
 
         //priceBar
