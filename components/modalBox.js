@@ -16,7 +16,7 @@ module.exports = class ModalBox
   {
     this.modal = document.createElement("div");
     this.modal.className = "modal";
-    window.onclick = (event)=>{  // When the user clicks anywhere outside of the modal, close it
+    this.modal.onclick = (event)=>{  // When the user clicks anywhere outside of the modal, close it
       if (event.target == this.modal)
       {
         this.modal.style.display = "none";

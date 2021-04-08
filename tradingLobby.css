@@ -35,6 +35,13 @@ select
 
     cursor: pointer;
 }
+.collection .coinListHeader .coinListEditBtn
+{
+    font-size: 18px;
+    margin-bottom: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
 .collection .coinListHeader .coinListHeaderText
 {
     display: inline;
@@ -241,7 +248,7 @@ li.priceLow, li.priceHigh {
 
 
 
-
+/* ---------- Input Modal ---------- */
 .modalContent
 {
     background-color: grey;
@@ -250,12 +257,13 @@ li.priceLow, li.priceHigh {
 {
     margin: 0 8px 12px 0;
 }
-h5.editAlarmTitle
+/* ---------- Input (Common) ---------- */
+h5.editListItemTitle, h5.editAlarmTitle
 {
     margin-left: 8px;
     margin-bottom: 16px;
 }
-.btn.removeAlarmBtn
+.btn.removeItemBtn, .btn.removeAlarmBtn, .btn.addItemBtn, .btn.addAlarmBtn
 {
     height: 35px;
     width: 35px;
@@ -265,6 +273,28 @@ h5.editAlarmTitle
     margin-right: 10px;
     margin-bottom: 5px;
 }
+/* ---------- Coin List Item Input ---------- */
+.coinListEditItemDiv
+{
+    display: block;
+}
+.btn.removeItemBtn
+{
+    display: inline;
+    margin-top: 30px;
+}
+.coinListEditItemInputDiv
+{
+    display: inline-grid;
+    width: 85%;
+}
+input.pairNameInput, input.pairIconInput
+{
+    padding: 0 10px;
+    
+    background-color: darkgray;
+}
+/* ---------- Alarm Input ---------- */
 input.alarmInput
 {
     color: white;
@@ -272,7 +302,7 @@ input.alarmInput
     padding: 0 10px;
     width: 330px;
 
-    background-color: #aaa;
+    background-color: darkgray;
 }
 input.alarmInput.priceUp
 {
@@ -281,15 +311,6 @@ input.alarmInput.priceUp
 input.alarmInput.priceDown
 {
     background-color: #e57373;
-}
-.btn.addAlarmBtn
-{
-    height: 35px;
-    width: 35px;
-
-    padding: 0;
-    border-radius: 20px;
-    margin-bottom: 10px;
 }
 
 

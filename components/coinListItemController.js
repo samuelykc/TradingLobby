@@ -73,8 +73,12 @@ let alarmEditBox;   //common alarm edit box shared across CoinListItemController
 
 module.exports = class CoinListItemController
 {
-  constructor(coinListItemRoot, exchange, item, priceChangePercentCB, itemIndex)
+  constructor(coinListRef, coinListItemRoot, exchange, item, priceChangePercentCB, itemIndex)
   {
+    this.coinListRef = coinListRef;
+
+
+
     //create alarmEditBox if not exist
     if(!alarmEditBox) alarmEditBox = new ModalBox(document.body);
 
@@ -204,6 +208,7 @@ module.exports = class CoinListItemController
     this.monitorCheckbox.addEventListener('change', (event) => {
         this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
         item.monitor = this.monitorCheckbox.checked;
+        this.coinListRef.setContentExpand(true);  //expand coinListContent to update its height
       }
     )
     this.priceUp.style.display = this.priceDown.style.display = (this.monitorCheckbox.checked? "block": "none");
@@ -274,7 +279,7 @@ module.exports = class CoinListItemController
 
   onClickEditAlarms()
   {
-    this.reprintAlarmInputs();
+    this.reprintAlarmInputs(false);
     alarmEditBox.show();
   }
 
@@ -312,11 +317,11 @@ module.exports = class CoinListItemController
 
 
         //add to UI
-        if(alarm.condition.startsWith('>'))
+        if(alarm.condition.startsWith(">="))
         {
           this.priceUp.appendChild(priceLabel);
         }
-        else if(alarm.condition.startsWith('<'))
+        else if(alarm.condition.startsWith("<="))
         {
           this.priceDown.appendChild(priceLabel);
         }
@@ -332,9 +337,13 @@ module.exports = class CoinListItemController
         });
       }
     );
+
+
+    //expand coinListContent to update its height
+    this.coinListRef.setContentExpand(true);
   }
 
-  reprintAlarmInputs()    //those input boxes
+  reprintAlarmInputs(alarmDataModified)    //those input boxes
   {
     let modalContent = document.createElement("div");
 
@@ -348,11 +357,30 @@ module.exports = class CoinListItemController
     if(this.alarmData) this.alarmData.forEach(
       (alarm) =>
       {
+        let editItemDiv = document.createElement('div');
+        editItemDiv.className = "alarmEditItemDiv";
+        modalContent.appendChild(editItemDiv);
+
+
+
+        //print removeAlarmBtn
+        let removeAlarmBtn = document.createElement('button');
+        removeAlarmBtn.innerHTML = "<i class=\"material-icons\">remove</i>";
+        removeAlarmBtn.className = "btn removeAlarmBtn red lighten-2";
+        removeAlarmBtn.onclick = ()=>{
+          this.alarmData.splice(this.alarmData.indexOf(alarm), 1);
+          this.reprintAlarmInputs(true);
+        };
+        editItemDiv.appendChild(removeAlarmBtn);
+
+
+
+        //print alarmInput
         let alarmInput = document.createElement('input');
         alarmInput.value = alarm.condition;
         alarmInput.placeholder = "Condition";
-        alarmInput.className = alarm.condition.startsWith(">")? "alarmInput priceUp": 
-                               alarm.condition.startsWith("<")? "alarmInput priceDown": "alarmInput";
+        alarmInput.className = alarm.condition.startsWith(">=")? "alarmInput priceUp": 
+                               alarm.condition.startsWith("<=")? "alarmInput priceDown": "alarmInput";
 
         alarmInput.addEventListener('change', (event) => {
             alarm.condition = alarmInput.value;
@@ -374,22 +402,10 @@ module.exports = class CoinListItemController
                 else return ((a.condition<b.condition)? -1: 1)  //text
               }
             );
-            this.reprintAlarmInputs();
+            this.reprintAlarmInputs(true);
           }
         )
-
-
-        let removeAlarmBtn = document.createElement('button');
-        removeAlarmBtn.innerHTML = "<i class=\"material-icons\">remove</i>";
-        removeAlarmBtn.className = "btn removeAlarmBtn red lighten-2";
-        removeAlarmBtn.onclick = ()=>{
-          this.alarmData.splice(this.alarmData.indexOf(alarm), 1);
-          this.reprintAlarmInputs();
-        };
-
-
-        modalContent.appendChild(removeAlarmBtn);
-        modalContent.appendChild(alarmInput);
+        editItemDiv.appendChild(alarmInput);
       }
     );
 
@@ -399,12 +415,12 @@ module.exports = class CoinListItemController
     addAlarmBtn.className = "btn addAlarmBtn light-green darken-1";
     addAlarmBtn.onclick = ()=>{
       this.alarmData.push({checked: "true", condition:""});
-      this.reprintAlarmInputs();
+      this.reprintAlarmInputs(true);
     };
     modalContent.appendChild(addAlarmBtn);
 
     alarmEditBox.setContent(modalContent);
-    alarmEditBox.setOnCloseCB(()=>{this.reprintAlarmObjects();});   //TODO: change only if changed
+    alarmEditBox.setOnCloseCB(()=>{if(alarmDataModified) this.reprintAlarmObjects();});   //current solution would reprint UI when any input value has changed, even if it was chnaged back before exiting the modal
   }
 
 
@@ -546,6 +562,17 @@ module.exports = class CoinListItemController
                    .replace("D O W N", "down")
                    .replace("B U L L", "bull")
                    .replace("B E A R", "bear")
+                   .replace("C B S E", "Coinbase")  //recompose stock names
+                   .replace("H O O D", "Robinhood")
+                   .replace("B A B A", "Alibaba")
+                   .replace("A B N B", "Airbnb")
+                   .replace("T S L A", "Tesla")
+                   .replace("F B", "Facebook")
+                   .replace("A A P L", "Apple")
+                   .replace("N O K", "Nokia")
+                   .replace("A M Z N", "Amazon")
+                   .replace("G O O G L", "Google")
+                   .replace("N F L X", "Netflix")
   }
 
   alarmTriggered(alarm, speech)

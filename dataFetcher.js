@@ -82,7 +82,10 @@ function delay(t, val)
 module.exports = {
     subscribeMarketData(subscription)
     {
-        marketSubscriptions.push(subscription);
+        if(subscription.exchange &&
+           subscription.pairName &&
+           subscription.callback)
+            marketSubscriptions.push(subscription);
 
         // console.log(subscription);
     },
