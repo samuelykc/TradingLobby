@@ -252,6 +252,7 @@ li.priceLow, li.priceHigh {
 .modalContent
 {
     background-color: grey;
+    margin: 0 auto 50px auto;
 }
 .close
 {
@@ -274,19 +275,39 @@ h5.editListItemTitle, h5.editAlarmTitle
     margin-bottom: 5px;
 }
 /* ---------- Coin List Item Input ---------- */
+.modal.listItemEditBox .modalContent
+{
+    padding: 16px;
+}
 .coinListEditItemDiv
 {
     display: block;
+    padding-left: 6px;
+    padding-right: 18px;
+
+    cursor: move;
+    user-select: none;
+}
+.coinListEditItemDiv:hover
+{
+    background-color: #909090;
 }
 .btn.removeItemBtn
 {
     display: inline;
     margin-top: 30px;
 }
+.btn.addItemBtn
+{
+    margin-top: 10px;
+    margin-left: 6px;
+}
 .coinListEditItemInputDiv
 {
     display: inline-grid;
     width: 85%;
+
+    cursor: default;
 }
 input.pairNameInput, input.pairIconInput
 {
