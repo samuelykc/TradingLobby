@@ -325,13 +325,18 @@ input.alarmInput
 
     background-color: darkgray;
 }
-input.alarmInput.priceUp
+input.alarmInput.priceUp, .btn.addAlarmBtn.greaterOrEqual
 {
     background-color: darkseagreen;
 }
-input.alarmInput.priceDown
+input.alarmInput.priceDown, .btn.addAlarmBtn.lessOrEqual
 {
     background-color: #e57373;
+}
+.btn.addAlarmBtn.greaterOrEqual, .btn.addAlarmBtn.lessOrEqual
+{
+    border-radius: 10px;
+    font-size: 16px;
 }
 
 

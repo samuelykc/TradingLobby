@@ -383,7 +383,7 @@ module.exports = class CoinListItemController
                                alarm.condition.startsWith("<=")? "alarmInput priceDown": "alarmInput";
 
         alarmInput.addEventListener('change', (event) => {
-            alarm.condition = alarmInput.value;
+            alarm.condition = alarmInput.value.replace(/[^\x00-\x7F]/g, "");  //remove non-ASCII char
             this.alarmData.sort((a, b)=>
               {
                 //sort by sign
@@ -418,6 +418,26 @@ module.exports = class CoinListItemController
       this.reprintAlarmInputs(true);
     };
     modalContent.appendChild(addAlarmBtn);
+
+    //print addAlarmBtn(>=)
+    let addAlarmBtnGE = document.createElement('button');
+    addAlarmBtnGE.innerHTML = ">=";
+    addAlarmBtnGE.className = "btn addAlarmBtn greaterOrEqual";
+    addAlarmBtnGE.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:">= "});
+      this.reprintAlarmInputs(true);
+    };
+    modalContent.appendChild(addAlarmBtnGE);
+
+    //print addAlarmBtn(<=)
+    let addAlarmBtnLE = document.createElement('button');
+    addAlarmBtnLE.innerHTML = "<=";
+    addAlarmBtnLE.className = "btn addAlarmBtn lessOrEqual";
+    addAlarmBtnLE.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:"<= "});
+      this.reprintAlarmInputs(true);
+    };
+    modalContent.appendChild(addAlarmBtnLE);
 
     alarmEditBox.setContent(modalContent);
     alarmEditBox.setOnCloseCB(()=>{if(alarmDataModified) this.reprintAlarmObjects();});   //current solution would reprint UI when any input value has changed, even if it was chnaged back before exiting the modal
