@@ -259,7 +259,7 @@ li.priceLow, li.priceHigh {
     margin: 0 8px 12px 0;
 }
 /* ---------- Input (Common) ---------- */
-h5.editListItemTitle, h5.editAlarmTitle
+h5.editListTitle, h5.editAlarmTitle
 {
     margin-left: 8px;
     margin-bottom: 16px;
@@ -278,6 +278,17 @@ h5.editListItemTitle, h5.editAlarmTitle
 .modal.listItemEditBox .modalContent
 {
     padding: 16px;
+}
+select.listExchangeInput
+{
+    display: inline;
+    width: 100px;
+    margin: 0 16px 0 8px;
+}
+input.listNameInput
+{
+    display: inline;
+    width: 240px;
 }
 .coinListEditItemDiv
 {

@@ -171,10 +171,63 @@ module.exports = class CoinListController
     let modalContent = document.createElement("div");
 
     //print title
-    let editListItemTitle = document.createElement('h5');
-    editListItemTitle.innerText = "Edit Watchlist";
-    editListItemTitle.className = "editListItemTitle";
-    modalContent.appendChild(editListItemTitle);
+    let editListTitle = document.createElement('h5');
+    editListTitle.innerText = "Edit Watchlist";
+    editListTitle.className = "editListTitle";
+    modalContent.appendChild(editListTitle);
+
+
+
+    //print listExchangeInput
+    let listExchangeInput = document.createElement('select');
+    listExchangeInput.className = "listExchangeInput";
+    listExchangeInput.addEventListener('change', (event) => {
+        this.listData.exchange = listExchangeInput.value;
+        this.listData.items.forEach(  //update items' pairName_API accroding to the exchange
+          (listItem) =>
+          {
+            listItem.pairName_API = listExchangeInput.value == "Binance"? listItem.pairName.replace('/', '').toLowerCase(): 
+                                    listExchangeInput.value == "FTX"? listItem.pairName: "";
+          }
+        );
+        listDataModified = true;
+      }
+    )
+    modalContent.appendChild(listExchangeInput);
+
+    let listExchangeInputOptionNull = document.createElement("option");
+    listExchangeInputOptionNull.setAttribute("value", "");
+    listExchangeInputOptionNull.setAttribute("disabled", "");
+    listExchangeInputOptionNull.setAttribute("hidden", "");
+    listExchangeInputOptionNull.innerText = "(Exchange)";
+    listExchangeInput.appendChild(listExchangeInputOptionNull);
+
+    let listExchangeInputOptionBinance = document.createElement("option");
+    listExchangeInputOptionBinance.setAttribute("value", "Binance");
+    listExchangeInputOptionBinance.innerText = "Binance";
+    listExchangeInput.appendChild(listExchangeInputOptionBinance);
+
+    let listExchangeInputOptionFTX = document.createElement("option");
+    listExchangeInputOptionFTX.setAttribute("value", "FTX");
+    listExchangeInputOptionFTX.innerText = "FTX";
+    listExchangeInput.appendChild(listExchangeInputOptionFTX);
+
+    listExchangeInput.value = this.listData.exchange;
+
+
+
+    //print listNameInput
+    let listNameInput = document.createElement('input');
+    listNameInput.value = this.listData.header;
+    listNameInput.placeholder = "List Name";
+    listNameInput.className = "listNameInput";
+    listNameInput.addEventListener('change', (event) => {
+        this.listData.header = listNameInput.value;
+        this.coinListHeaderText.innerHTML = listNameInput.value;
+      }
+    )
+    modalContent.appendChild(listNameInput);
+
 
 
     //print list item rows container
