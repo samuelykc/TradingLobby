@@ -84,6 +84,51 @@ module.exports = {
         httpsRequest(options, callback);
     },
 
+    subscribeAllMarketMiniTickerStream(market_name, onmessage, onclose)
+    {
+        let socket = new WebSocket("wss://stream.binance.com:9443/ws/!miniTicker@arr");
+
+        socket.onopen = function(e)
+        {
+            console.log("[open] Connection established");
+        };
+
+        socket.onmessage = function(event)
+        {
+            // console.log(`[message] Data received from server: ${event.data}`);
+            
+            try
+            {
+                let jsonData = JSON.parse(event.data);
+                onmessage(jsonData);
+            }
+            catch(e)
+            {
+                console.error(e.message);
+            }
+        };
+
+        socket.onclose = function(event)
+        {
+            if (event.wasClean) {
+                console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+            }
+            else {
+                // e.g. server process killed or network down
+                // event.code is usually 1006 in this case
+                console.log('[close] Connection died');
+            }
+            onclose();
+        };
+
+        socket.onerror = function(error)
+        {
+            console.log(`[error] ${error.message}`);
+        };
+
+        return socket;
+    },
+
     subscribeMiniTickerStream(market_name, onmessage, onclose)
     {
         let socket = new WebSocket("wss://stream.binance.com:9443/ws/"+market_name+"@miniTicker");
@@ -125,6 +170,8 @@ module.exports = {
         {
             console.log(`[error] ${error.message}`);
         };
+
+        return socket;
     },
 
     subscribeTickerStream(market_name, onmessage, onclose)
@@ -168,6 +215,8 @@ module.exports = {
         {
             console.log(`[error] ${error.message}`);
         };
+
+        return socket;
     },
 
 

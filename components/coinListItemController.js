@@ -497,7 +497,13 @@ module.exports = class CoinListItemController
         if(this.monitorCheckbox.checked) this.checkAlarms(data, lastLow, lastHigh);
       };
     
-    dataFetcher.subscribeMarketData({exchange: exchange, pairName: pairName_API, callback: callback});
+    this.subscription = {exchange: exchange, pairName: pairName_API, callback: callback};
+    dataFetcher.subscribeMarketData(this.subscription);
+  }
+
+  unsubscribe()
+  {
+    dataFetcher.unsubscribeMarketData(this.subscription);
   }
 
   checkAlarms(data, lastLow, lastHigh)

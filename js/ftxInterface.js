@@ -237,6 +237,8 @@ module.exports = {
             activeFetchCandlesAsStream[market_name].run = true;
             fetchCandlesAsStream(market_name);
         }
+
+        return true;
     },
 
     unsubscribeFakeMiniTickerStream(market_name)
@@ -293,6 +295,8 @@ module.exports = {
             console.log(`[error] ${error.message}`);
             stopKeepStreamAlive = true;
         };
+
+        return socket;
     },
 
 

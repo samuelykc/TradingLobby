@@ -84,7 +84,9 @@ module.exports = class CoinListController
 
   remove()
   {
-
+    this.coinListItems.forEach((item)=>{
+      item.unsubscribe(); //close web socket
+    });
   }
 
 
@@ -122,9 +124,10 @@ module.exports = class CoinListController
   {
     //clear printed coinListItems
     this.coinListItems.forEach((item)=>{
-      this.coinListContent.removeChild(item.coinListItem);
+      item.unsubscribe(); //close web socket
+      this.coinListContent.removeChild(item.coinListItem);  //remove from HTML
     });
-    this.coinListItems = [];
+    this.coinListItems = [];  //TODO: reuse unchanged items instead of reprinting it
 
 
     //reset group PriceChangePercent
