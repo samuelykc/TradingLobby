@@ -637,12 +637,14 @@ module.exports = class CoinListItemController
 
 
 
+  /* ------------------ code for HSV color ------------------ */
+  //reference: https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
   HSVtoRGB(h, s, v)
   {
       var r, g, b, i, f, p, q, t;
-      if (arguments.length === 1) {
-          s = h.s, v = h.v, h = h.h;
-      }
+      // if (arguments.length === 1) {
+      //     s = h.s, v = h.v, h = h.h;
+      // }
       i = Math.floor(h * 6);
       f = h * 6 - i;
       p = v * (1 - s);
