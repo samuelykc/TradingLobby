@@ -18,6 +18,7 @@ const configFile = "config.txt";
 
 
 let marketSubscriptions = [];
+let binanceMarketSubscriptions = [];  //extra array to hold items in marketSubscriptions that belong to Binance
 
 
 async function fetchMarketData()
@@ -36,9 +37,16 @@ async function fetchMarketData()
           
           if(subscription.exchange == "Binance")
           {
-            subscription.tickerStream = binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
-                                                                              subscription.callback, 
-                                                                              () => { subscription.tickerStream = {}; });
+            // Implementation with allMarketTickerStream
+            if(!binanceAllMarketTickerStream)
+              binanceAllMarketTickerStream = binanceInterface.subscribeAllMarketMiniTickerStream(binanceAllMarketTickerStreamCBsCaller, 
+                                                                                    () => { binanceAllMarketTickerStream = {}; });
+            subscription.tickerStream = true;
+
+            // Implementation with individual streams
+            // subscription.tickerStream = binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
+            //                                                                   subscription.callback, 
+            //                                                                   () => { subscription.tickerStream = {}; });
           }
           else if(subscription.exchange == "FTX")
           {
@@ -62,6 +70,23 @@ fetchMarketData();
 
 
 
+let binanceAllMarketTickerStream;
+function binanceAllMarketTickerStreamCBsCaller(allMarketData)
+{
+  binanceMarketSubscriptions.forEach(
+    (subscription)=>
+    {
+      for(let data of allMarketData)
+      {
+        if(data.s == subscription.pairName.toUpperCase())
+        {
+          subscription.callback(data);
+          break;
+        }
+      }
+    }
+  );
+}
 
 
 
@@ -77,28 +102,57 @@ function delay(t, val)
 }
 
 
-module.exports = {
+
+
+
+
+/* -------------- interface -------------- */
+module.exports =
+{
   subscribeMarketData(subscription)
   {
     if(subscription.exchange &&
        subscription.pairName &&
        subscription.callback)
+    {
       marketSubscriptions.push(subscription);
+
+      if(subscription.exchange == "Binance") binanceMarketSubscriptions.push(subscription);
+    }
 
     // console.log(subscription);
   },
   unsubscribeMarketData(subscription)
   {
     //remove subscription from array first, so it will not be reassigned with web socket after close
+    //remove subscription (marketSubscriptions)
     let index = marketSubscriptions.indexOf(subscription);
     if(index !== -1)
     {
       marketSubscriptions.splice(index, 1);
-      console.log("remove list item for ("+subscription.exchange+") "+subscription.pairName);
+      console.log("remove ("+subscription.exchange+") "+subscription.pairName+" from marketSubscriptions[]");
+    }
+    //remove subscription (binanceMarketSubscriptions)
+    index = binanceMarketSubscriptions.indexOf(subscription);
+    if(index !== -1)
+    {
+      binanceMarketSubscriptions.splice(index, 1);
+      console.log("remove ("+subscription.exchange+") "+subscription.pairName+" from binanceMarketSubscriptions[]");
     }
 
-    //close web socket, in case of FakeMiniTickerStream there will be no close() function
-    if(subscription.tickerStream && subscription.tickerStream.close) subscription.tickerStream.close();
-    if(subscription.tickerStream && subscription.tickerStream.close) console.log("remove tickerStream for ("+subscription.exchange+") "+subscription.pairName);
+
+    //close web socket
+    if(subscription.tickerStream && subscription.tickerStream.close)
+    {
+      subscription.tickerStream.close();  //in case of FakeMiniTickerStream or binanceAllMarketTickerStream, there will be no close() function
+      console.log("close web socket for ("+subscription.exchange+") "+subscription.pairName);
+    }
+
+    //close web socket (binanceAllMarketTickerStream)
+    if(binanceAllMarketTickerStream && !binanceMarketSubscriptions.length)
+    {
+      binanceAllMarketTickerStream.close();
+      console.log("close web socket for binanceAllMarketTickerStream");
+    }
   },
 }
