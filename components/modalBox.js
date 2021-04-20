@@ -19,8 +19,7 @@ module.exports = class ModalBox
     this.modal.onclick = (event)=>{  // When the user clicks anywhere outside of the modal, close it
       if (event.target == this.modal)
       {
-        this.modal.style.display = "none";
-        if(this.onCloseCB) this.onCloseCB();
+        this.hide();
       }
     }
     modalBoxRoot.appendChild(this.modal);
@@ -38,10 +37,7 @@ module.exports = class ModalBox
     this.modalSpan = document.createElement("span");
     this.modalSpan.className = "close";
     this.modalSpan.innerHTML = "&times;";
-    this.modalSpan.onclick = ()=>{  // When the user clicks on <span> (x), close the modal
-      this.modal.style.display = "none";
-      if(this.onCloseCB) this.onCloseCB();
-    }
+    this.modalSpan.onclick = ()=>{ this.hide(); }  // When the user clicks on <span> (x), close the modal
     this.modalContent.appendChild(this.modalSpan);
 
 
@@ -58,6 +54,12 @@ module.exports = class ModalBox
   show()
   {
     this.modal.style.display = "block";
+  }
+
+  hide()
+  {
+    this.modal.style.display = "none";
+    if(this.onCloseCB) this.onCloseCB();
   }
 
   setOnCloseCB(onCloseCB)

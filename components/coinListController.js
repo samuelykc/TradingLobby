@@ -24,8 +24,12 @@ let listItemEditBox;   //common list item edit box shared across CoinListControl
 
 module.exports = class CoinListController
 {
-  constructor(coinListRoot, list)
+  constructor(coinListRoot, list, removeCB)
   {
+    this.removeCB = removeCB;
+
+
+
     //create listItemEditBox if not exist
     if(!listItemEditBox)
     {
@@ -84,9 +88,10 @@ module.exports = class CoinListController
 
   remove()
   {
-    this.coinListItems.forEach((item)=>{
-      item.unsubscribe(); //close web socket
-    });
+    //clear printed coinListItems
+    this.clearCoinListItems();
+    //call to remove this coinList
+    this.removeCB(this.listData);
   }
 
 
@@ -120,15 +125,19 @@ module.exports = class CoinListController
     this.listContentExpanded = expand;
   }
 
-  reprintCoinListItems()   //those list items
+  clearCoinListItems()
   {
-    //clear printed coinListItems
     this.coinListItems.forEach((item)=>{
       item.unsubscribe(); //close web socket
       this.coinListContent.removeChild(item.coinListItem);  //remove from HTML
     });
     this.coinListItems = [];  //TODO: reuse unchanged items instead of reprinting it
+  }
 
+  reprintCoinListItems()   //those list items
+  {
+    //clear printed coinListItems
+    this.clearCoinListItems();
 
     //reset group PriceChangePercent
     this.coinListItemsPriceChangePercent = [];
@@ -143,7 +152,9 @@ module.exports = class CoinListController
       this.coinListItemsPriceChangePercent[itemIndex] = percent;
 
       //set group PriceChangePercent if all items have data returned
-      if(this.coinListItemsPriceChangePercent.length < this.coinListItems.length) return;
+      if(!this.coinListItemsPriceChangePercent ||
+         !this.coinListItems ||
+         this.coinListItemsPriceChangePercent.length < this.coinListItems.length) return;
 
       let percentSum = 0.0;
       this.coinListItemsPriceChangePercent.forEach((percent)=>{
@@ -309,7 +320,21 @@ module.exports = class CoinListController
 
     listItemEditBox.setContent(modalContent);
     listItemEditBox.setOnCloseCB(()=>{if(listDataModified) this.reprintCoinListItems();});   //current solution would reprint UI when any input value has changed, even if it was chnaged back before exiting the modal
+
+
+
+    //print removeListBtn
+    let removeListBtn = document.createElement('button');
+    removeListBtn.innerText = "- Coin List";
+    removeListBtn.className = "btn removeListBtn red lighten-2";
+    removeListBtn.onclick = ()=>{
+      this.remove();
+      listDataModified = false; //entire list will be removed, so no change needs to apply
+      listItemEditBox.hide(); //close modal
+    };
+    modalContent.appendChild(removeListBtn);
     
+
 
     //set dragFinishCallback
     dragFinishCallback = (fromPos, toPos)=>

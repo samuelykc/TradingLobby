@@ -52,7 +52,7 @@ function coinListsConfigFileLoadCallback(c)
 {
   config = c;
 
-  config.coinLists.forEach(function(list) { coinLists_UI.push(new CoinListController(coinListRoot, list)); })
+  config.coinLists.forEach((list)=>{ coinLists_UI.push(new CoinListController(coinListRoot, list, removeCoinList)); })
 }
 
 function coinListsSave()
@@ -69,4 +69,21 @@ function coinListsSave()
 async function openATM()
 {
   ipcRenderer.invoke('openATM', 'BNB/USDT');
+}
+
+async function addCoinList()
+{
+  config.coinLists.push({header: "New Coin List", exchange: "", items: []});
+  coinLists_UI.push(new CoinListController(coinListRoot, config.coinLists[config.coinLists.length-1], removeCoinList));
+}
+function removeCoinList(list)
+{
+  let index = config.coinLists.indexOf(list);
+
+  //remove data
+  config.coinLists.splice(index, 1);
+
+  //remove from UI
+  coinListRoot.removeChild(coinLists_UI[index].coinList);  //remove from HTML
+  coinLists_UI.splice(index, 1);
 }
