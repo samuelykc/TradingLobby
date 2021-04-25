@@ -89,8 +89,8 @@ module.exports = class CoinListController
   remove()
   {
     //clear printed coinListItems
-    this.clearCoinListItems();
-    //call to remove this coinList
+    this.clearCoinListItems(false);   //when removing a list from UI, its items need not to be removed from UI independently so only web sockets need to be closed here
+    //tell callback to handle removing this coinList & data
     this.removeCB(this.listData);
   }
 
@@ -125,11 +125,11 @@ module.exports = class CoinListController
     this.listContentExpanded = expand;
   }
 
-  clearCoinListItems()
+  clearCoinListItems(removeFromUI = true)
   {
     this.coinListItems.forEach((item)=>{
       item.unsubscribe(); //close web socket
-      this.coinListContent.removeChild(item.coinListItem);  //remove from HTML
+      if(removeFromUI) this.coinListContent.removeChild(item.coinListItem);  //remove from HTML
     });
     this.coinListItems = [];  //TODO: reuse unchanged items instead of reprinting it
   }

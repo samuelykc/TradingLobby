@@ -32,8 +32,8 @@ window.onbeforeunload = (e) => {
   //save data
   coinListsSave();
 
-  //remove list (close items' socket)
-  coinLists_UI.forEach((list)=>{ list.remove(); })
+  //close list items' socket
+  coinLists_UI.forEach((list)=>{ list.clearCoinListItems(false); })
 }
 
 
