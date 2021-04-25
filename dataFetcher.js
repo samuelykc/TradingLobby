@@ -1,3 +1,10 @@
+/*
+Binance allMarketTickerStream vs individual streams:
+Although allMarketTickerStream only needs 1 active stream to communicate, it consumes more computation power
+and bandwidth than having seperate streams for the required pairs. Without showing any improvement to the Binance
+freezd data communication problem, the allMarketTickerStream is no longer considered for implementation.
+*/
+
 const binanceInterface = require('./js/binanceInterface');
 const bitmaxInterface = require('./js/bitmaxInterface');
 const ftxInterface = require('./js/ftxInterface');
@@ -18,7 +25,7 @@ const configFile = "config.txt";
 
 
 let marketSubscriptions = [];
-let binanceMarketSubscriptions = [];  //extra array to hold items in marketSubscriptions that belong to Binance
+// let binanceMarketSubscriptions = [];  //extra array to hold items in marketSubscriptions that belong to Binance (Implementation for allMarketTickerStream)
 
 
 async function fetchMarketData()
@@ -38,15 +45,15 @@ async function fetchMarketData()
           if(subscription.exchange == "Binance")
           {
             // Implementation with allMarketTickerStream
-            if(!binanceAllMarketTickerStream)
-              binanceAllMarketTickerStream = binanceInterface.subscribeAllMarketMiniTickerStream(binanceAllMarketTickerStreamCBsCaller, 
-                                                                                    () => { binanceAllMarketTickerStream = {}; });
-            subscription.tickerStream = true;
+            // if(!binanceAllMarketTickerStream)
+            //   binanceAllMarketTickerStream = binanceInterface.subscribeAllMarketMiniTickerStream(binanceAllMarketTickerStreamCBsCaller, 
+            //                                                                         () => { binanceAllMarketTickerStream = {}; });
+            // subscription.tickerStream = true;
 
             // Implementation with individual streams
-            // subscription.tickerStream = binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
-            //                                                                   subscription.callback, 
-            //                                                                   () => { subscription.tickerStream = {}; });
+            subscription.tickerStream = binanceInterface.subscribeMiniTickerStream(subscription.pairName, 
+                                                                              subscription.callback, 
+                                                                              () => { subscription.tickerStream = {}; });
           }
           else if(subscription.exchange == "FTX")
           {
@@ -70,23 +77,23 @@ fetchMarketData();
 
 
 
-let binanceAllMarketTickerStream;
-function binanceAllMarketTickerStreamCBsCaller(allMarketData)
-{
-  binanceMarketSubscriptions.forEach(
-    (subscription)=>
-    {
-      for(let data of allMarketData)
-      {
-        if(data.s == subscription.pairName.toUpperCase())
-        {
-          subscription.callback(data);
-          break;
-        }
-      }
-    }
-  );
-}
+// let binanceAllMarketTickerStream;    //(Implementation for allMarketTickerStream)
+// function binanceAllMarketTickerStreamCBsCaller(allMarketData)
+// {
+//   binanceMarketSubscriptions.forEach(
+//     (subscription)=>
+//     {
+//       for(let data of allMarketData)
+//       {
+//         if(data.s == subscription.pairName.toUpperCase())
+//         {
+//           subscription.callback(data);
+//           break;
+//         }
+//       }
+//     }
+//   );
+// }
 
 
 
@@ -117,7 +124,7 @@ module.exports =
     {
       marketSubscriptions.push(subscription);
 
-      if(subscription.exchange == "Binance") binanceMarketSubscriptions.push(subscription);
+      // if(subscription.exchange == "Binance") binanceMarketSubscriptions.push(subscription);  // (Implementation for allMarketTickerStream)
     }
 
     // console.log(subscription);
@@ -132,13 +139,13 @@ module.exports =
       marketSubscriptions.splice(index, 1);
       console.log("remove ("+subscription.exchange+") "+subscription.pairName+" from marketSubscriptions[]");
     }
-    //remove subscription (binanceMarketSubscriptions)
-    index = binanceMarketSubscriptions.indexOf(subscription);
-    if(index !== -1)
-    {
-      binanceMarketSubscriptions.splice(index, 1);
-      console.log("remove ("+subscription.exchange+") "+subscription.pairName+" from binanceMarketSubscriptions[]");
-    }
+    //remove subscription (binanceMarketSubscriptions) (Implementation for allMarketTickerStream)
+    // index = binanceMarketSubscriptions.indexOf(subscription);
+    // if(index !== -1)
+    // {
+    //   binanceMarketSubscriptions.splice(index, 1);
+    //   console.log("remove ("+subscription.exchange+") "+subscription.pairName+" from binanceMarketSubscriptions[]");
+    // }
 
 
     //close web socket
@@ -148,11 +155,11 @@ module.exports =
       console.log("close web socket for ("+subscription.exchange+") "+subscription.pairName);
     }
 
-    //close web socket (binanceAllMarketTickerStream)
-    if(binanceAllMarketTickerStream && !binanceMarketSubscriptions.length)
-    {
-      binanceAllMarketTickerStream.close();
-      console.log("close web socket for binanceAllMarketTickerStream");
-    }
+    //close web socket (binanceAllMarketTickerStream) (Implementation for allMarketTickerStream)
+    // if(binanceAllMarketTickerStream && !binanceMarketSubscriptions.length)
+    // {
+    //   binanceAllMarketTickerStream.close();
+    //   console.log("close web socket for binanceAllMarketTickerStream");
+    // }
   },
 }
