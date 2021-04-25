@@ -339,8 +339,8 @@ module.exports = class CoinListItemController
     );
 
 
-    //expand coinListContent to update its height
-    this.coinListRef.setContentExpand(true);
+    //update coinListContent's height
+    this.coinListRef.setContentExpand(this.coinListRef.listData.expanded);
   }
 
   reprintAlarmInputs(alarmDataModified)    //those input boxes

@@ -26,6 +26,7 @@ module.exports = class CoinListController
 {
   constructor(coinListRoot, list, removeCB)
   {
+    this.listData = list;
     this.removeCB = removeCB;
 
 
@@ -78,7 +79,6 @@ module.exports = class CoinListController
 
 
     //coinListItem
-    this.listData = list;
     this.coinListItems = [];
     this.coinListItemsPriceChangePercent = [];
 
@@ -100,7 +100,7 @@ module.exports = class CoinListController
   {
     if(event.target == this.coinListEditBtn) return;  //do nothing if the click is on coinListEditBtn
 
-    this.setContentExpand(!this.listContentExpanded);
+    this.setContentExpand(!this.listData.expanded);
   }
 
   onClickEditBtn()
@@ -114,6 +114,7 @@ module.exports = class CoinListController
 
   setContentExpand(expand)
   {
+    console.log('setContentExpand: '+expand)
     if(expand)
     {
       this.coinListContent.style.maxHeight = this.coinListContent.scrollHeight+"px";
@@ -122,7 +123,7 @@ module.exports = class CoinListController
     {
       this.coinListContent.style.maxHeight = null;
     }
-    this.listContentExpanded = expand;
+    this.listData.expanded = expand;
   }
 
   clearCoinListItems(removeFromUI = true)
@@ -174,10 +175,6 @@ module.exports = class CoinListController
         new CoinListItemController(this, this.coinListContent, this.listData.exchange, item, onItemPriceChangePercent, itemIndex++)
       );
     });
-
-
-    //expand coinListContent
-    this.setContentExpand(true);
   }
 
   reprintListItemInputs(listDataModified)

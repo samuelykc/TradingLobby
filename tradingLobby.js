@@ -73,7 +73,7 @@ async function openATM()
 
 async function addCoinList()
 {
-  config.coinLists.push({header: "New Coin List", exchange: "", items: []});
+  config.coinLists.push({header: "New Coin List", exchange: "", expanded: true, items: []});
   coinLists_UI.push(new CoinListController(coinListRoot, config.coinLists[config.coinLists.length-1], removeCoinList));
 }
 function removeCoinList(list)
