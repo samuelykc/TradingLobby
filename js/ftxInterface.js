@@ -73,6 +73,54 @@ function delay(t, val) {
 let activeFetchCandlesAsStream = {};    //only support 1 stream instance for each market at the same time
 async function fetchCandlesAsStream(market_name)  //fetch candles continuosly and callback like a stream would
 {
+    console.log("candleList A");
+    /* -------------- initial candles cache -------------- */
+    let candleList = [];
+    let candleListFirstFetchComplete = false, candleListSecondFetchComplete = false;
+
+    //get the 15sec candles for the past 24hr, which should consist of 5760 candles
+    while(!candleListFirstFetchComplete)
+    {
+        //get 800 candles from 1day+2min before now
+        getCandles(market_name, {resolution: 15, limit: 800, start_time: Math.trunc((Date.now()-86400000-120000)/1000)},
+            (respond)=>
+            {
+                console.log("start_time: "+Math.trunc((Date.now()-86400000-120000)/1000));
+                console.log(respond.result);
+                if(!candleListFirstFetchComplete && respond.result)
+                {
+                    candleList = respond.result;
+                    candleListFirstFetchComplete = true;
+                }
+            }
+        );
+        await delay(200);
+    }
+    while(!candleListSecondFetchComplete)
+    {
+        //get 5000 candles closest to now
+        getCandles(market_name, {resolution: 15, limit: 5000},
+            (respond)=>
+            {
+                if(!candleListSecondFetchComplete && respond.result)
+                {
+                    respond.result.forEach((item)=>{
+                        if(!candleList.find(c => c.time == item.time))  //include the candle only if it doesn't exist
+                        {
+                            candleList.push(item);
+                        }
+                    });
+                    candleListSecondFetchComplete = true;
+                }
+            }
+        );
+        await delay(200);
+    }
+    console.log("candleList B");
+    console.log(candleList);
+
+
+    /* -------------- continuos data retrieve -------------- */
     let data = {};
 
     data.s = market_name.replace('/', '');
