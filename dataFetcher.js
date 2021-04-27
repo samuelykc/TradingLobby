@@ -67,7 +67,6 @@ async function fetchMarketData()
       }
     );
 
-
     await delay(1000);
   }
 };
@@ -151,7 +150,7 @@ module.exports =
     //close web socket
     if(subscription.tickerStream && subscription.tickerStream.close)
     {
-      subscription.tickerStream.close();  //in case of FakeMiniTickerStream or binanceAllMarketTickerStream, there will be no close() function
+      subscription.tickerStream.close();
       console.log("close web socket for ("+subscription.exchange+") "+subscription.pairName);
     }
 

@@ -238,7 +238,14 @@ module.exports = {
             fetchCandlesAsStream(market_name);
         }
 
-        return true;
+        return { 'close': ()=>
+            {
+                if(activeFetchCandlesAsStream[market_name])
+                    activeFetchCandlesAsStream[market_name].run = false;
+
+                onclose();
+            }
+        };  //return fake WebSocket object with close() function
     },
 
     unsubscribeFakeMiniTickerStream(market_name)
