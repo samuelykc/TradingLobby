@@ -1,3 +1,25 @@
+/*
+FTX close price vs last price:
+Although close price seems to be calculated from opening buy/sell orders, unlike last price which reflects the 
+price of the last filled trade, the whole high-low-open-close on FTX follows this same logic so that using 
+last price with high & low would causes trouble.
+In some occasions when the price for a certain pair hits the high/low, the value of last price may not match 
+the high/low price. In previous implementation, this has caused the value of high flipping between high & last.
+
+Meanwhile, the latest candle in historical price candles from FTX is not up-to-date, so that it cannot be relied on 
+for price monitoring.
+
+FTX candles:
+It seems that FTX has a weird behaviour when returning candles for a certain pair. The situation where: 
+At T0, it may return candles A, B, C, D...
+From T1 to T2, it may return candles B, C, D, E...
+At T3, somehow it returns candles A, B, C, D... again.
+This could cause the high/low values flipping back and forth in time repeatedly.
+Ammendment: Perhaps the start_time parameter for getting the candles is completely useless and doing nothing in the API 
+despite how the API documentation suggested its design is.
+
+*/
+
 const https = require('follow-redirects').https;
 const querystring = require('querystring');
 const CryptoJS = require("crypto-js");
@@ -73,20 +95,17 @@ function delay(t, val) {
 let activeFetchCandlesAsStream = {};    //only support 1 stream instance for each market at the same time
 async function fetchCandlesAsStream(market_name)  //fetch candles continuosly and callback like a stream would
 {
-    console.log("candleList A");
     /* -------------- initial candles cache -------------- */
     let candleList = [];
+    let candleListChanged = true;
     let candleListFirstFetchComplete = false, candleListSecondFetchComplete = false;
 
-    //get the 15sec candles for the past 24hr, which should consist of 5760 candles
+    //get the 60sec candles for the past 24hr&1min, which should consist of 1441 candles
     while(!candleListFirstFetchComplete)
     {
-        //get 800 candles from 1day+2min before now
-        getCandles(market_name, {resolution: 15, limit: 800, start_time: Math.trunc((Date.now()-86400000-120000)/1000)},
+        getCandles(market_name, {resolution: 60, limit: 1441},
             (respond)=>
             {
-                console.log("start_time: "+Math.trunc((Date.now()-86400000-120000)/1000));
-                console.log(respond.result);
                 if(!candleListFirstFetchComplete && respond.result)
                 {
                     candleList = respond.result;
@@ -94,30 +113,8 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
                 }
             }
         );
-        await delay(200);
+        await delay(400);
     }
-    while(!candleListSecondFetchComplete)
-    {
-        //get 5000 candles closest to now
-        getCandles(market_name, {resolution: 15, limit: 5000},
-            (respond)=>
-            {
-                if(!candleListSecondFetchComplete && respond.result)
-                {
-                    respond.result.forEach((item)=>{
-                        if(!candleList.find(c => c.time == item.time))  //include the candle only if it doesn't exist
-                        {
-                            candleList.push(item);
-                        }
-                    });
-                    candleListSecondFetchComplete = true;
-                }
-            }
-        );
-        await delay(200);
-    }
-    console.log("candleList B");
-    console.log(candleList);
 
 
     /* -------------- continuos data retrieve -------------- */
@@ -131,6 +128,7 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
 
     let getPriceRespondHandled = true;
     let getPriceLastUpdate = 0;
+
     
     while(activeFetchCandlesAsStream[market_name].run)
     {
@@ -139,28 +137,54 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
         {
             getCandlesRespondHandled = false;
 
-            getCandles(market_name, {resolution: 60, limit: 1441},
+            getCandles(market_name, {resolution: 60, limit: 1},
                 (respond)=>
                 {
                     getCandlesLastUpdate = Date.now();
 
-                    if(respond.result)
+                    if(respond.result && respond.result[0]) //sometimes FTX can respond with a success result with empty result array
                     {
-                        // let close = respond.result[respond.result.length - 1].close;
-                        let open = respond.result[0].open;
-                        let high = respond.result[0].high;
-                        let low = respond.result[0].low;
+                        let shiftedCandle;
 
-                        respond.result.forEach((item)=>{
-                            if(item.high>high) high = item.high;
-                            if(item.low<low) low = item.low;
-                        });
-
-                        //update data & callback onmessage() if data changed
-                        if(/*close!=data.c || */open!=data.o || high!=data.h || low!=data.l)    //not using the close price of the last candle since the number seems wrong
+                        if(!candleList.find(c => c.time == respond.result[0].time))  //include the candle only if it doesn't exist
                         {
-                            /*data.c=close; */data.o=open; data.h=high; data.l=low;
-                            if(data.c >= 0) activeFetchCandlesAsStream[market_name].onmessage(data);    //call only when all data ready
+                            shiftedCandle = candleList[0];
+                            candleList.push(respond.result[0]);
+                            candleList.shift();
+                            candleListChanged = true;
+                        }
+
+                        if(candleListChanged)
+                        {
+                            // let close = candleList[candleList.length - 1].close;
+                            let open = candleList[0].open;
+                            let high = candleList[0].high;
+                            let low = candleList[0].low;
+
+                            if(!shiftedCandle || (shiftedCandle.high >= data.h || shiftedCandle.low <= data.l))
+                            {
+                                //running the code for the first time, or
+                                //candle responsible for the high and/or low may have been shifted away, rescan
+                                candleList.forEach((item)=>{
+                                    if(item.high>high) high = item.high;
+                                    if(item.low<low) low = item.low;
+                                });
+                            }
+                            else
+                            {
+                                //candle being shifted away has nothing to do with high & low
+                                high = data.h;
+                                low = data.l;
+                            }
+
+                            //update data & callback onmessage() if data changed
+                            if(/*close!=data.c ||*/ open!=data.o || high!=data.h || low!=data.l)
+                            {
+                                /*data.c=close;*/ data.o=open; data.h=high; data.l=low;
+                                if(data.c >= 0) activeFetchCandlesAsStream[market_name].onmessage(data);    //call only when all data ready
+                            }
+
+                            candleListChanged = false;
                         }
                     }
 
@@ -189,6 +213,10 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
                             data.c=close; data.h=high; data.l=low;
                             if(data.o >= 0) activeFetchCandlesAsStream[market_name].onmessage(data);    //call only when all data ready
                         }
+
+                        //update current candle
+                        if(close>candleList[candleList.length - 1].high) candleList[candleList.length - 1].high = close;
+                        if(close<candleList[candleList.length - 1].low) candleList[candleList.length - 1].low = close;
                     }
 
                     getPriceRespondHandled = true;
