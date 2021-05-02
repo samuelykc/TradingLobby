@@ -315,16 +315,41 @@ input.listNameInput
 .btn.removeItemBtn
 {
     display: inline;
-    margin-top: 30px;
+    /*margin-top: 30px;*/
 }
 .btn.addItemBtn
 {
     margin-top: 10px;
     margin-left: 6px;
 }
-.coinListEditItemInputDiv
+.coinListEditItemLeftDiv label          /*label element to hold the archive icon*/
 {
-    display: inline-grid;
+    width: 0;   /*so that this will not block the dragging*/
+    height: 0;
+
+    display: block;
+}
+.coinListEditItemLeftDiv label.archiveCheckboxLabel span.archiveCheckboxSpan    /*the archive icon position*/
+{
+    padding: 0;
+    margin: 15px 0 0 5px;
+}
+.coinListEditItemLeftDiv label.archiveCheckboxLabel input[type="checkbox"]:checked + span.archiveCheckboxSpan
+{
+    color: peachpuff;
+}
+.coinListEditItemLeftDiv label.archiveCheckboxLabel [type="checkbox"]+span:not(.lever):before,
+.coinListEditItemLeftDiv label.archiveCheckboxLabel [type="checkbox"]:not(.filled-in)+span:not(.lever):after
+{
+    display: none;  /*hide the materialize square box*/
+}
+.coinListEditItemLeftDiv
+{
+    display: inline-table;
+}
+.coinListEditItemRightDiv
+{
+    display: inline-table;
     width: 85%;
 
     cursor: default;

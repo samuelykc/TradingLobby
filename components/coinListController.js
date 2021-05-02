@@ -171,9 +171,16 @@ module.exports = class CoinListController
 
     //print coinListItems
     this.listData.items.forEach((item)=>{
-      this.coinListItems.push(
-        new CoinListItemController(this, this.coinListContent, this.listData.exchange, item, onItemPriceChangePercent, itemIndex++)
-      );
+      if(item.archived)
+      {
+        itemIndex++;
+      }
+      else
+      {
+        this.coinListItems.push(
+          new CoinListItemController(this, this.coinListContent, this.listData.exchange, item, onItemPriceChangePercent, itemIndex++)
+        );
+      }
     });
   }
 
@@ -258,6 +265,12 @@ module.exports = class CoinListController
         editListDiv.appendChild(editItemDiv);
 
 
+
+        //print leftDiv
+        let leftDiv = document.createElement('div');
+        leftDiv.className = "coinListEditItemLeftDiv";
+        editItemDiv.appendChild(leftDiv);
+
         //print removeItemBtn
         let removeItemBtn = document.createElement('button');
         removeItemBtn.innerHTML = "<i class=\"material-icons\">remove</i>";
@@ -266,14 +279,37 @@ module.exports = class CoinListController
           this.listData.items.splice(this.listData.items.indexOf(listItem), 1);
           this.reprintListItemInputs(true);
         };
-        editItemDiv.appendChild(removeItemBtn);
+        leftDiv.appendChild(removeItemBtn);
+
+        //print archiveCheckbox
+        let archiveCheckboxLabel = document.createElement('label');
+        archiveCheckboxLabel.className = "archiveCheckboxLabel";
+
+        let archiveCheckbox = document.createElement('input');
+        archiveCheckbox.className = "archiveCheckbox";
+        archiveCheckbox.setAttribute("type", "checkbox");
+        archiveCheckbox.checked = listItem.archived;
+        archiveCheckbox.addEventListener('change', (event) => {
+            listItem.archived = archiveCheckbox.checked;
+            listDataModified = true;
+
+            console.log("test")
+          }
+        )
+        archiveCheckboxLabel.appendChild(archiveCheckbox);
+        leftDiv.appendChild(archiveCheckboxLabel);
+
+        let archiveCheckboxSpan = document.createElement('span');
+        archiveCheckboxSpan.className = "archiveCheckboxSpan";
+        archiveCheckboxSpan.innerHTML = "<i class=\"material-icons\">archive</i>";
+        archiveCheckboxLabel.appendChild(archiveCheckboxSpan);
 
 
-        //print inputDiv
-        let inputDiv = document.createElement('div');
-        inputDiv.className = "coinListEditItemInputDiv";
-        editItemDiv.appendChild(inputDiv);
 
+        //print rightDiv
+        let rightDiv = document.createElement('div');
+        rightDiv.className = "coinListEditItemRightDiv";
+        editItemDiv.appendChild(rightDiv);
 
         //print pairNameInput
         let pairNameInput = document.createElement('input');
@@ -287,8 +323,7 @@ module.exports = class CoinListController
             listDataModified = true;
           }
         )
-        inputDiv.appendChild(pairNameInput);
-
+        rightDiv.appendChild(pairNameInput);
 
         //print pairIconInput
         let pairIconInput = document.createElement('input');
@@ -300,7 +335,7 @@ module.exports = class CoinListController
             listDataModified = true;
           }
         )
-        inputDiv.appendChild(pairIconInput);
+        rightDiv.appendChild(pairIconInput);
       }
     );
 
