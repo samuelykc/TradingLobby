@@ -213,6 +213,7 @@ li.priceLow, li.priceHigh {
     right: 12px;
 
     overflow: visible;  /*so that surrounding tooltip box could be shown*/
+    user-select: none;  /*so that it cannot be highlighted*/
 }
 
 .tooltip .tooltiptext {
