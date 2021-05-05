@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron');
 
 const CoinListController = require('./components/coinListController');
+const CoinListItemController = require('./components/coinListItemController');
 const ModalBox = require('./components/ModalBox');
 
 const fileIOInterface = require('./js/fileIOInterface');
@@ -25,6 +26,7 @@ window.onload = function()
   coinListRoot = document.getElementById("coinListRoot");
 
   //load data
+  CoinListItemController.speechDictionaryLoad();
   coinListsLoad();
 };
 

@@ -61,6 +61,32 @@ module.exports = {
         }
     },
 
+    readCSVRecordsSync(filename, callback)
+    {
+        try
+        {
+            let data = fs.readFileSync(filename, 'utf8');
+
+            // console.log(data)
+
+            let lines = data.split(CSVLineSeparator); //1st separator
+            var i = lines.length;
+            while(i--)
+            {
+                if(lines[i] !== "")
+                    lines[i] = lines[i].split(CSVCellSeparator); //2nd separator
+                else
+                    lines.splice(i,1);
+            }
+
+            callback(lines);    //lines have been processed into records
+        }
+        catch(e)
+        {
+            console.error(e);
+        }
+    },
+
     appendRecordSync(filename, record)
     {
         fs.appendFileSync(filename, record.join(CSVCellSeparator) + CSVLineSeparator);

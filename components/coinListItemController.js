@@ -59,6 +59,7 @@
 */
 
 const mathExtend = require('../js/mathExtend');
+const fileIOInterface = require('../js/fileIOInterface');
 const dataFetcher = require('../dataFetcher');
 const speechManager = require('../speechManager');
 const ModalBox = require('./ModalBox');
@@ -66,6 +67,10 @@ const ModalBox = require('./ModalBox');
 let exchangeTradeURL = {};
 exchangeTradeURL["Binance"] = "https://www.binance.com/en/trade/";
 exchangeTradeURL["FTX"] = "https://ftx.com/trade/";
+
+const dataDir = "data/";
+const speechDictionaryFile = "speechDictionary.csv";
+let speechDictionary = [];
 
 let alarmEditBox;   //common alarm edit box shared across CoinListItemController
 
@@ -76,6 +81,7 @@ module.exports = class CoinListItemController
   constructor(coinListRef, coinListItemRoot, exchange, item, priceChangePercentCB, itemIndex)
   {
     this.coinListRef = coinListRef;
+    this.pairNameForSpeech = this.formatPairNameForSpeech(item.pairName);
 
 
 
@@ -529,7 +535,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              speech = this.formatPairNameForSpeech(data.s) + ' hits the top';
+              speech = this.pairNameForSpeech + ' hits the top';
             }
           }
           else
@@ -539,7 +545,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              speech = this.formatPairNameForSpeech(data.s) + ' above ' + targetPrice;
+              speech = this.pairNameForSpeech + ' above ' + targetPrice;
             }
           }
         }
@@ -555,7 +561,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              speech = this.formatPairNameForSpeech(data.s) + ' hits the bottom';
+              speech = this.pairNameForSpeech + ' hits the bottom';
             }
           }
           else
@@ -565,7 +571,7 @@ module.exports = class CoinListItemController
 
             if(alarm.isTriggering)
             {
-              speech = this.formatPairNameForSpeech(data.s) + ' below ' + targetPrice;
+              speech = this.pairNameForSpeech + ' below ' + targetPrice;
             }
           }
         }
@@ -583,22 +589,18 @@ module.exports = class CoinListItemController
 
   formatPairNameForSpeech(pairName)
   {
-    return pairName.split("").join(" ")   //break into letters
-                   .replace("U P", "up")  //recompose common words
-                   .replace("D O W N", "down")
-                   .replace("B U L L", "bull")
-                   .replace("B E A R", "bear")
-                   .replace("C B S E", "Coinbase")  //recompose stock names
-                   .replace("H O O D", "Robinhood")
-                   .replace("B A B A", "Alibaba")
-                   .replace("A B N B", "Airbnb")
-                   .replace("T S L A", "Tesla")
-                   .replace("F B", "Facebook")
-                   .replace("A A P L", "Apple")
-                   .replace("N O K", "Nokia")
-                   .replace("A M Z N", "Amazon")
-                   .replace("G O O G L", "Google")
-                   .replace("N F L X", "Netflix")
+    pairName = pairName.split("").join(" ")   //break into letters
+                       .replace(" / ", " ");
+
+    speechDictionary.forEach(
+      (record) =>
+      {
+        pairName = pairName.replace(record[0], record[1])  //recompose words defined in dictionary
+      }
+    );
+    // console.log(pairName);
+
+    return pairName;
   }
 
   alarmTriggered(alarm, speech)
@@ -636,6 +638,24 @@ module.exports = class CoinListItemController
 
 
 
+  static speechDictionaryLoad() //should be called before any list item is created
+  {
+      let speechDictionaryFileDir = dataDir+speechDictionaryFile;
+
+      if(fileIOInterface.checkDirSync(speechDictionaryFileDir))
+          fileIOInterface.readCSVRecordsSync(speechDictionaryFileDir, 
+                                        (records) =>
+                                        {
+                                          speechDictionary = records;
+                                          speechDictionary.forEach(
+                                            (record) =>
+                                            {
+                                              record[0] = record[0].split("").join(" ");  //break record's key into letters for use
+                                              record[1] = record[1].replace(/(\r\n|\n|\r)/gm, "");  //remove undesired line breaks come by
+                                            }
+                                          );
+                                        });
+  }
 
   /* ------------------ code for HSV color ------------------ */
   //reference: https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
