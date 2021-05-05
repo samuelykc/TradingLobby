@@ -54,7 +54,8 @@ function coinListsConfigFileLoadCallback(c)
 {
   config = c;
 
-  config.coinLists.forEach((list)=>{ coinLists_UI.push(new CoinListController(coinListRoot, list, removeCoinList)); })
+  if(config.coinLists)
+    config.coinLists.forEach((list)=>{ coinLists_UI.push(new CoinListController(coinListRoot, list, removeCoinList)); })
 }
 
 function coinListsSave()
