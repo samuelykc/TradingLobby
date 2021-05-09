@@ -106,7 +106,7 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
         getCandles(market_name, {resolution: 60, limit: 1441},
             (respond)=>
             {
-                if(!candleListFirstFetchComplete && respond.result)
+                if(!candleListFirstFetchComplete && respond.result && respond.result[0])
                 {
                     candleList = respond.result;
                     candleListFirstFetchComplete = true;
