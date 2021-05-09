@@ -60,6 +60,8 @@ function coinListsConfigFileLoadCallback(c)
 
 function coinListsSave()
 {
+  if(!config) return; //prevent failed loading clearing the data file
+
   const coinListsConfigFileDir = dataDir+coinListsConfigFile;
 
   fileIOInterface.writeJSONSync(coinListsConfigFileDir, config);
