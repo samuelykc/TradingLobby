@@ -445,6 +445,26 @@ module.exports = class CoinListItemController
     };
     modalContent.appendChild(addAlarmBtnLE);
 
+    //print addAlarmBtn(>=)
+    let addAlarmBtnGEHigh = document.createElement('button');
+    addAlarmBtnGEHigh.innerHTML = ">= high";
+    addAlarmBtnGEHigh.className = "btn addAlarmBtn greaterOrEqualHigh";
+    addAlarmBtnGEHigh.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:">= high"});
+      this.reprintAlarmInputs(true);
+    };
+    modalContent.appendChild(addAlarmBtnGEHigh);
+
+    //print addAlarmBtn(<=)
+    let addAlarmBtnLELow = document.createElement('button');
+    addAlarmBtnLELow.innerHTML = "<= low";
+    addAlarmBtnLELow.className = "btn addAlarmBtn lessOrEqualLow";
+    addAlarmBtnLELow.onclick = ()=>{
+      this.alarmData.push({checked: "true", condition:"<= low"});
+      this.reprintAlarmInputs(true);
+    };
+    modalContent.appendChild(addAlarmBtnLELow);
+
     alarmEditBox.setContent(modalContent);
     alarmEditBox.setOnCloseCB(()=>{if(alarmDataModified) this.reprintAlarmObjects();});   //current solution would reprint UI when any input value has changed, even if it was chnaged back before exiting the modal
   }

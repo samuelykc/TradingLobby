@@ -371,11 +371,11 @@ input.alarmInput
 
     background-color: darkgray;
 }
-input.alarmInput.priceUp, .btn.addAlarmBtn.greaterOrEqual
+input.alarmInput.priceUp, .btn.addAlarmBtn.greaterOrEqual, .btn.addAlarmBtn.greaterOrEqualHigh
 {
     background-color: darkseagreen;
 }
-input.alarmInput.priceDown, .btn.addAlarmBtn.lessOrEqual
+input.alarmInput.priceDown, .btn.addAlarmBtn.lessOrEqual, .btn.addAlarmBtn.lessOrEqualLow
 {
     background-color: #e57373;
 }
@@ -383,6 +383,13 @@ input.alarmInput.priceDown, .btn.addAlarmBtn.lessOrEqual
 {
     border-radius: 10px;
     font-size: 16px;
+}
+.btn.addAlarmBtn.greaterOrEqualHigh, .btn.addAlarmBtn.lessOrEqualLow
+{
+    border-radius: 10px;
+    font-size: 16px;
+    width: 80px;
+    text-transform: lowercase;
 }
 
 
