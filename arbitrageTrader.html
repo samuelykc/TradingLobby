@@ -13,40 +13,55 @@
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
 
 
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="arbitrageTrader.css">
     <link rel="stylesheet" href="css/modalBox.css">
 
     <script src="js/modalBox.js"></script>
-    <script src="index.js"></script>
+    <script src="arbitrageTrader.js"></script>
 </head>
 
 <body>
+    <select name="exchangeA" id="exchangeA" class="browser-default" value>
+      <option value="Binance" selected="selected">Binance</option>
+      <option value="BitMax">BitMax</option>
+      <option value="FTX">FTX</option>
+    </select>
+    <select name="exchangeB" id="exchangeB" class="browser-default">
+      <option value="Binance">Binance</option>
+      <option value="BitMax">BitMax</option>
+      <option value="FTX" selected="selected">FTX</option>
+    </select>
+    <!-- <div class="input">
+      <input type="number" name="exchangeAFee" id="exchangeAFee">
+      <input type="number" name="exchangeBFee" id="exchangeBFee">
+    </div> -->
+    <button class="waves-effect waves-light btn" onclick="setExchangeAndRestart()">Set Exchange</button>
 
     <div class="board">
         <table id="tableAc">
           <caption>Account Balance</caption>
           <tr>
             <th></th>
-            <th>Binance</th>
-            <th>BitMax</th>
+            <th id="ac_exchangeA">Binance</th>
+            <th id="ac_exchangeB">BitMax</th>
             <th>sum</th>
           </tr>
           <tr>
             <td>BNB</td>
-            <td id="ac_Binance_BNB">N/A</td>
-            <td id="ac_BitMax_BNB">N/A</td>
+            <td id="ac_exchangeA_BNB">N/A</td>
+            <td id="ac_exchangeB_BNB">N/A</td>
             <td id="ac_sum_BNB">N/A</td>
           </tr>
           <tr>
             <td>USDT</td>
-            <td id="ac_Binance_USDT">N/A</td>
-            <td id="ac_BitMax_USDT">N/A</td>
+            <td id="ac_exchangeA_USDT">N/A</td>
+            <td id="ac_exchangeB_USDT">N/A</td>
             <td id="ac_sum_USDT">N/A</td>
           </tr>
           <tr>
             <td></td>
-            <td class="tdLastUpdate" id="Binance_WalletLastUpdatePassed">N/A</td>
-            <td class="tdLastUpdate" id="BitMax_WalletLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeA_WalletLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeB_WalletLastUpdatePassed">N/A</td>
             <td></td>
           </tr>
         </table>
@@ -56,28 +71,28 @@
         <table id="tableDiff">
           <caption>BNB/USDT Market</caption>
           <tr>
-            <th class="thBinance">Binance</th>
+            <th id="market_exchangeA">Binance</th>
             <th class="thDiff">diff/max profit</th>
-            <th class="thBitMax">BitMax</th>
+            <th id="market_exchangeB">BitMax</th>
           </tr>
           <tr>
-            <td class="tdClose" id="Binance_BNB_USDT_close">N/A</td>
+            <td class="tdClose" id="exchangeA_BNB_USDT_close">N/A</td>
             <td id="diff_BNB_USDT_close">N/A</td>
-            <td class="tdClose" id="BitMax_BNB_USDT_close">N/A</td>
+            <td class="tdClose" id="exchangeB_BNB_USDT_close">N/A</td>
           </tr>
           <tr>
-            <td class="tdBid" id="Binance_BNB_USDT_bid">N/A</td>
+            <td class="tdBid" id="exchangeA_BNB_USDT_bid">N/A</td>
             <td id="diff_BNB_USDT_maxProfit" rowspan="2">N/A<br/>(N/A)</td>
-            <td class="tdBid" id="BitMax_BNB_USDT_bid">N/A</td>
+            <td class="tdBid" id="exchangeB_BNB_USDT_bid">N/A</td>
           </tr>
           <tr>
-            <td class="tdAsk" id="Binance_BNB_USDT_ask">N/A</td>
-            <td class="tdAsk" id="BitMax_BNB_USDT_ask">N/A</td>
+            <td class="tdAsk" id="exchangeA_BNB_USDT_ask">N/A</td>
+            <td class="tdAsk" id="exchangeB_BNB_USDT_ask">N/A</td>
           </tr>
           <tr>
-            <td class="tdLastUpdate" id="Binance_OrderBookLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeA_OrderBookLastUpdatePassed">N/A</td>
             <td></td>
-            <td class="tdLastUpdate" id="BitMax_OrderBookLastUpdatePassed">N/A</td>
+            <td class="tdLastUpdate" id="exchangeB_OrderBookLastUpdatePassed">N/A</td>
           </tr>
         </table>
         <p class="tableDescription">
@@ -91,7 +106,7 @@
     <div class="card">
         <div class="input">
             <label for="traderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
-            <input type="number" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
+            <input type="number" step="0.001" id="traderCriticalMaxProfitWithFee" name="traderCriticalMaxProfitWithFee" value="0">
         </div>
         <div class="input">
             <label for="traderMaxLastUpdate">Max last update(ms):</label>
@@ -102,6 +117,11 @@
             <input type="number" min="0" max="120" id="traderSafeTradeBuffer" name="traderSafeTradeBuffer" value="80">
         </div>
         <button class="waves-effect waves-light btn" id="toggleTraderBtn" onclick="toggleTrader()">Start trading</button>
+        <label>
+          <input type="checkbox" class="filled-in" id="performOneTrade" name="performOneTrade" />
+          <span>stop after 1 trade</span>
+        </label>
+
         <div class="board">
             <table id="tableHistory">
               <caption>Trade History</caption>
@@ -128,7 +148,7 @@
     <div class="card">
         <div class="input">
             <label for="priceRecorderCriticalMaxProfitWithFee">Critical max profit with fee:</label>
-            <input type="number" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
+            <input type="number" step="0.001" id="priceRecorderCriticalMaxProfitWithFee" name="priceRecorderCriticalMaxProfitWithFee" value="0">
         </div>
         <div class="input">
             <label for="priceRecorderMaxLastUpdate">Max last update(ms):</label>
@@ -140,8 +160,8 @@
               <caption>Profitable Price Records</caption>
               <tr>
                 <th>Time</th>
-                <th>Binance</th>
-                <th>BitMax</th>
+                <th id="priceRecord_exchangeA">Binance</th>
+                <th id="priceRecord_exchangeB">BitMax</th>
                 <th>Profit</th>
               </tr>
               <!-- <tr>

@@ -29,7 +29,7 @@ module.exports = {
 
     writeJSONSync(filename, json)
     {
-        let data = JSON.stringify(json);
+        let data = JSON.stringify(json, null, 2);
         fs.writeFileSync(filename, data);
     },
 
@@ -54,6 +54,32 @@ module.exports = {
 
                 callback(lines);    //lines have been processed into records
             });
+        }
+        catch(e)
+        {
+            console.error(e);
+        }
+    },
+
+    readCSVRecordsSync(filename, callback)
+    {
+        try
+        {
+            let data = fs.readFileSync(filename, 'utf8');
+
+            // console.log(data)
+
+            let lines = data.split(CSVLineSeparator); //1st separator
+            var i = lines.length;
+            while(i--)
+            {
+                if(lines[i] !== "")
+                    lines[i] = lines[i].split(CSVCellSeparator); //2nd separator
+                else
+                    lines.splice(i,1);
+            }
+
+            callback(lines);    //lines have been processed into records
         }
         catch(e)
         {
