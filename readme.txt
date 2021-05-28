@@ -1,3 +1,55 @@
+About this project:
+This project currently aims to monitor crypto prices on Binance & FTX (futures & stock tokens could also be monitored for FTX).
+The project began with the aim to perform arbitrage trades across Binance & FTX, which the functionality has succeeded and currently abandoned. There is no plan for continuos maintainence for the functionality and it has been hidden from the UI. Developers with interest may explore that in the source code as I find it troublesome to remove them from the project.
+
+How to use:
+- Alarms in the format of ">= (value)", "<= (value)", ">= high" and "<= low" could be used to get notice once the price has reached a certain value or the 24-hrs high/low.
+- To use custom names for pronouncing the coin/stock symbols, open the "data/speechDictionary.csv" to add a custom "(symbol), (name)" pair.
+- If you need to re-order the lists, or moving list items across lists, you may need to manually modify the "data/coinListsConfig.txt".
+
+Known issues:
+- If the program freezes occasionally, it could be caused by having too much entries for monitoring FTX markets. Try to remove/archieve some (or most) of the FTX entries to see if the problem is resolved.
+
+====================== Referral ======================
+
+If you are planning to join Binance or FTX, consider the following referral links with commission kickback.
+
+Binance：
+https://www.binance.com/en/register?ref=TZL78JU8
+
+FTX：
+https://ftx.com/#a=15008914
+
+====================== Donation ======================
+
+If you do make a fortune perhaps with a little bit of help from the app, feel free to share your joy into any of the following addresses. I am always here to celebrate with you.
+
+BTC：
+bc1q3pjvm4txwl6ezl2pju6035npyv2jl20x5xa9s5
+
+ETH (BEP20/BSC)：
+0xCc56Dc8AF3792b856428E5d62462f7bA15e064a1
+
+BNB (BEP2)：
+bnb1e55cpc0ucw9g2gy3htkq6jf6as8ftz0waq6qxv
+
+BNB (BEP20/BSC)：
+0xCc56Dc8AF3792b856428E5d62462f7bA15e064a1
+
+FTT (BEP20/BSC)：
+0xCc56Dc8AF3792b856428E5d62462f7bA15e064a1
+
+DOGE：
+D85cgdjqXv8tABPsDFWazt91KqY4zUVCp3
+
+SOL：
+FtcJuxkA1xpThArxUr843urXuLhaHB5pMkyCN6PvW4N
+
+Tether USD (BEP20/BSC)：
+0xCc56Dc8AF3792b856428E5d62462f7bA15e064a1
+
+====================== Dev ======================
+
 Test:
 npm start
 
