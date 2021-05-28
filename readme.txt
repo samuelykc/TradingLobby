@@ -10,6 +10,8 @@ How to use:
 Known issues:
 - If the program freezes occasionally, it could be caused by having too much entries for monitoring FTX markets. Try to remove/archieve some (or most) of the FTX entries to see if the problem is resolved.
 
+
+
 ====================== Download ======================
 
 1) Download and unzip the "TradingLobby.7z"：
@@ -20,6 +22,8 @@ If you are trying it in workplace, you may want to mute the speaker beforehand j
 
 The folder has included the example data files used by the application ("data/coinListsConfig.txt", "data/speechDictionary.csv"), usually you don't have to manually modify them but could interact through the UI. Developers working with the source codes may want to refer to the example data files.
 
+
+
 ====================== Referral ======================
 
 If you are planning to join Binance or FTX, please consider the following referral links with commission kickback.
@@ -29,6 +33,8 @@ https://www.binance.com/en/register?ref=TZL78JU8
 
 FTX：
 https://ftx.com/#a=15008914
+
+
 
 ====================== Donation ======================
 
@@ -57,6 +63,8 @@ FtcJuxkA1xpThArxUr843urXuLhaHB5pMkyCN6PvW4N
 
 Tether USD (BEP20/BSC)：
 0xCc56Dc8AF3792b856428E5d62462f7bA15e064a1
+
+
 
 ====================== Dev ======================
 
