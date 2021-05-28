@@ -228,7 +228,7 @@ async function fetchCandlesAsStream(market_name)  //fetch candles continuosly an
         if(!getCandlesRespondHandled && (Date.now()-getCandlesLastUpdate) > 2000) getCandlesRespondHandled = true;
         if(!getPriceRespondHandled && (Date.now()-getPriceLastUpdate) > 2000) getPriceRespondHandled = true;
 
-        await delay(200);
+        await delay(400);
     }
 
     activeFetchCandlesAsStream[market_name].onclose(data);
