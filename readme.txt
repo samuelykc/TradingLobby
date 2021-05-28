@@ -10,9 +10,19 @@ How to use:
 Known issues:
 - If the program freezes occasionally, it could be caused by having too much entries for monitoring FTX markets. Try to remove/archieve some (or most) of the FTX entries to see if the problem is resolved.
 
+====================== Download ======================
+
+1) Download and unzip the "TradingLobby.7z"：
+https://github.com/samuelykc/TradingLobby/releases/tag/v1.0
+
+2) Start "TradingLobby.exe" within.
+If you are trying it in workplace, you may want to mute the speaker beforehand just to ensure the example price alarms would not catch the others' attention.
+
+The folder has included the example data files used by the application ("data/coinListsConfig.txt", "data/speechDictionary.csv"), usually you don't have to manually modify them but could interact through the UI. Developers working with the source codes may want to refer to the example data files.
+
 ====================== Referral ======================
 
-If you are planning to join Binance or FTX, consider the following referral links with commission kickback.
+If you are planning to join Binance or FTX, please consider the following referral links with commission kickback.
 
 Binance：
 https://www.binance.com/en/register?ref=TZL78JU8
