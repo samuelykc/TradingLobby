@@ -10,6 +10,9 @@ How to use:
 Known issues:
 - If the program freezes occasionally, it could be caused by having too much entries for monitoring FTX markets. Try to remove/archieve some (or most) of the FTX entries to see if the problem is resolved.
 
+Disclaimer:
+The application only reflects the data fetched from the exchanges without any implication nor advice. Any issues causing the application to freeze, fail or reflecting corrupted data would be unintended and the developer will not be liable to any loss caused. Please use the application based on your own decision by which you should be solely responsible for any possible consequence. Please be careful when making investment decisions and beware of the risks behind.
+
 
 
 ====================== Download ======================
