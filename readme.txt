@@ -1,6 +1,6 @@
 About this project:
 This project currently aims to monitor crypto prices on Binance & FTX (futures & stock tokens could also be monitored for FTX).
-The project began with the aim to perform arbitrage trades across Binance & FTX, which the functionality has succeeded and currently abandoned. There is no plan for continuos maintainence for the functionality and it has been hidden from the UI. Developers with interest may explore that in the source code as I find it troublesome to remove them from the project.
+The project began with the aim to perform arbitrage trades across Binance & FTX, which the functionality has succeeded and currently abandoned. There is no plan for continuous maintainence for the functionality and it has been hidden from the UI. Developers with interest may explore that in the source code as I find it troublesome to remove them from the project.
 
 How to use:
 - Alarms in the format of ">= (value)", "<= (value)", ">= high" and "<= low" could be used to get notice once the price has reached a certain value or the 24-hrs high/low.
